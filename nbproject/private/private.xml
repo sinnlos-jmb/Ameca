@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="100">
+        <file>
+            <url>src/ameca/Comercios.java</url>
+            <bookmark id="13">
+                <name/>
+                <line>99</line>
+                <key/>
+            </bookmark>
+            <bookmark id="12">
+                <name/>
+                <line>121</line>
+                <key/>
+            </bookmark>
+            <bookmark id="66">
+                <name/>
+                <line>165</line>
+                <key/>
+            </bookmark>
+            <bookmark id="65">
+                <name/>
+                <line>195</line>
+                <key/>
+            </bookmark>
+            <bookmark id="64">
+                <name/>
+                <line>216</line>
+                <key/>
+            </bookmark>
+            <bookmark id="67">
+                <name/>
+                <line>254</line>
+                <key/>
+            </bookmark>
+            <bookmark id="83">
+                <name/>
+                <line>279</line>
+                <key/>
+            </bookmark>
+            <bookmark id="61">
+                <name/>
+                <line>334</line>
+                <key/>
+            </bookmark>
+            <bookmark id="60">
+                <name/>
+                <line>428</line>
+                <key/>
+            </bookmark>
+            <bookmark id="62">
+                <name/>
+                <line>689</line>
+                <key/>
+            </bookmark>
+            <bookmark id="63">
+                <name/>
+                <line>756</line>
+                <key/>
+            </bookmark>
+            <bookmark id="18">
+                <name/>
+                <line>901</line>
+                <key/>
+            </bookmark>
+            <bookmark id="85">
+                <name/>
+                <line>917</line>
+                <key/>
+            </bookmark>
+            <bookmark id="84">
+                <name/>
+                <line>973</line>
+                <key/>
+            </bookmark>
+            <bookmark id="86">
+                <name/>
+                <line>1025</line>
+                <key/>
+            </bookmark>
+            <bookmark id="87">
+                <name/>
+                <line>1083</line>
+                <key/>
+            </bookmark>
+            <bookmark id="88">
+                <name/>
+                <line>1143</line>
+                <key/>
+            </bookmark>
+            <bookmark id="89">
+                <name/>
+                <line>1257</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/ameca/Reportes.java</url>
+            <bookmark id="41">
+                <name/>
+                <line>199</line>
+                <key/>
+            </bookmark>
+            <bookmark id="42">
+                <name/>
+                <line>225</line>
+                <key/>
+            </bookmark>
+            <bookmark id="68">
+                <name/>
+                <line>266</line>
+                <key/>
+            </bookmark>
+            <bookmark id="71">
+                <name/>
+                <line>288</line>
+                <key/>
+            </bookmark>
+            <bookmark id="59">
+                <name/>
+                <line>382</line>
+                <key/>
+            </bookmark>
+            <bookmark id="58">
+                <name/>
+                <line>432</line>
+                <key/>
+            </bookmark>
+            <bookmark id="57">
+                <name/>
+                <line>551</line>
+                <key/>
+            </bookmark>
+            <bookmark id="56">
+                <name/>
+                <line>776</line>
+                <key/>
+            </bookmark>
+            <bookmark id="69">
+                <name/>
+                <line>1013</line>
+                <key/>
+            </bookmark>
+            <bookmark id="70">
+                <name/>
+                <line>1293</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/ameca/Liquidaciones.java</url>
+            <bookmark id="30">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="31">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="32">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="33">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="7">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="35">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="36">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="37">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="38">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="40">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="39">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="55">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="53">
+                <name/>
+                <line>0</line>
+                <key/>
+            </bookmark>
+            <bookmark id="95">
+                <name/>
+                <line>172</line>
+                <key/>
+            </bookmark>
+            <bookmark id="100">
+                <name/>
+                <line>550</line>
+                <key/>
+            </bookmark>
+            <bookmark id="99">
+                <name/>
+                <line>718</line>
+                <key/>
+            </bookmark>
+            <bookmark id="94">
+                <name/>
+                <line>1051</line>
+                <key/>
+            </bookmark>
+            <bookmark id="96">
+                <name/>
+                <line>1352</line>
+                <key/>
+            </bookmark>
+            <bookmark id="97">
+                <name/>
+                <line>1430</line>
+                <key/>
+            </bookmark>
+            <bookmark id="98">
+                <name/>
+                <line>1499</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/ameca/HTML.java</url>
+            <bookmark id="43">
+                <name/>
+                <line>173</line>
+                <key/>
+            </bookmark>
+            <bookmark id="44">
+                <name/>
+                <line>267</line>
+                <key/>
+            </bookmark>
+            <bookmark id="45">
+                <name/>
+                <line>336</line>
+                <key/>
+            </bookmark>
+            <bookmark id="46">
+                <name/>
+                <line>404</line>
+                <key/>
+            </bookmark>
+            <bookmark id="47">
+                <name/>
+                <line>469</line>
+                <key/>
+            </bookmark>
+            <bookmark id="48">
+                <name/>
+                <line>584</line>
+                <key/>
+            </bookmark>
+            <bookmark id="49">
+                <name/>
+                <line>698</line>
+                <key/>
+            </bookmark>
+            <bookmark id="50">
+                <name/>
+                <line>854</line>
+                <key/>
+            </bookmark>
+            <bookmark id="51">
+                <name/>
+                <line>960</line>
+                <key/>
+            </bookmark>
+            <bookmark id="52">
+                <name/>
+                <line>1069</line>
+                <key/>
+            </bookmark>
+            <bookmark id="93">
+                <name/>
+                <line>1084</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/ameca/Establecimientos.java</url>
+            <bookmark id="77">
+                <name/>
+                <line>99</line>
+                <key/>
+            </bookmark>
+            <bookmark id="6">
+                <name/>
+                <line>100</line>
+                <key/>
+            </bookmark>
+            <bookmark id="72">
+                <name/>
+                <line>142</line>
+                <key/>
+            </bookmark>
+            <bookmark id="73">
+                <name/>
+                <line>170</line>
+                <key/>
+            </bookmark>
+            <bookmark id="74">
+                <name/>
+                <line>170</line>
+                <key/>
+            </bookmark>
+            <bookmark id="75">
+                <name/>
+                <line>212</line>
+                <key/>
+            </bookmark>
+            <bookmark id="91">
+                <name/>
+                <line>244</line>
+                <key/>
+            </bookmark>
+            <bookmark id="76">
+                <name/>
+                <line>292</line>
+                <key/>
+            </bookmark>
+            <bookmark id="78">
+                <name/>
+                <line>353</line>
+                <key/>
+            </bookmark>
+            <bookmark id="79">
+                <name/>
+                <line>408</line>
+                <key/>
+            </bookmark>
+            <bookmark id="80">
+                <name/>
+                <line>469</line>
+                <key/>
+            </bookmark>
+            <bookmark id="81">
+                <name/>
+                <line>519</line>
+                <key/>
+            </bookmark>
+            <bookmark id="82">
+                <name/>
+                <line>571</line>
+                <key/>
+            </bookmark>
+            <bookmark id="90">
+                <name/>
+                <line>699</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/home/manu/Documents/Java/Ameca/src/ameca/Reportes.java</file>
+            <file>file:/home/manu/Documents/Java/Ameca/src/ameca/Comercios.java</file>
+            <file>file:/home/manu/Documents/Java/Ameca/src/ameca/Liquidaciones.java</file>
+            <file>file:/home/manu/Documents/Java/Ameca/src/ameca/CX.java</file>
+            <file>file:/home/manu/Documents/Java/Ameca/src/ameca/Establecimientos.java</file>
+            <file>file:/home/manu/Documents/Java/Ameca/src/ameca/HTML.java</file>
+            <file>file:/home/manu/Documents/Java/Ameca/src/ameca/Inicio.java</file>
+        </group>
+    </open-files>
+</project-private>
