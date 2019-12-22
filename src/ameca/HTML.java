@@ -1,6 +1,5 @@
 package ameca; 
  
-
 import com.mysql.cj.util.StringUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -81,8 +80,8 @@ private static Date date ;
 private static String strDate ;
 
 
-private static String[][] categs_autonomo= new String [15][6];   //11
-private static Double[] montos_autonomo= new Double [15];   //11
+private static String[][] categs_autonomo= new String [15][6] ;     //11.
+private static Double[] montos_autonomo= new Double [15];     //11.
 private static String form_categorias_autonomo;
 private static int long_autonomos=11;  // longitud del vector
 
