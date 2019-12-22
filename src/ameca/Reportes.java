@@ -6,8 +6,8 @@ package ameca;
  * @author manu
  */
 
-//import com.mysql.cj.util.StringUtils;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,9 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 // PDF
-
-import java.net.URLEncoder;
-
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
