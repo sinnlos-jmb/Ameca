@@ -139,7 +139,7 @@ public class Establecimientos extends HttpServlet
         out.println(HTML.getTail());
 
         }
-    else if (operacion.equals("save")) //guarda los datos recibidos del formulario ya completo
+    else if (operacion.equals("save")) //guarda los datos recibidos del formulario ya completo.
         {
 
         out.println("<html><head><title>Ameca - Save Data</title>\n </head> \n <body>  \n\n ");
