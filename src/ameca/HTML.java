@@ -15,6 +15,8 @@ import java.util.Locale;
 //import java.text.SimpleDateFormat;  
 import java.util.Date;  
 import java.util.Calendar;  
+
+
 /**
  *
  * @author manu
@@ -37,7 +39,7 @@ private static Boolean ignited_categorias_autonomo=false;
 private static Boolean ignited_categorias_monotributo=false;
 private static Boolean ignited_periodo=false;
 
-private static Boolean ignited_parametros=false;  // tabla de parametros
+private static Boolean ignited_parametros=false;  // tabla de parametros.
   
 private static final int cod_localidad_caba=1;
 private static final int cod_prov_caba=25;
