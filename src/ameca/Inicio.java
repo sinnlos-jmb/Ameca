@@ -38,7 +38,7 @@ public class Inicio extends HttpServlet {
     String user_nom  = request.getParameter ("user_nom") != null ?  request.getParameter ("user_nom") : "" ;  
     String user_pwd  = request.getParameter ("user_pwd") != null ?  request.getParameter ("user_pwd") : "" ;  
 
-        
+    HTML.setIgnited_periodo(false);
     if (!HTML.getIgnited_localidades())
          HTML.Carga_localidades();
     if (!HTML.getIgnited_condiciones_iva())
