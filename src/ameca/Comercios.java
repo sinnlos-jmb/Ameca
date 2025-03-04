@@ -1,7 +1,7 @@
 package ameca;
  
 
-/**
+/*
  *
  * @author manu
  */
@@ -9,6 +9,7 @@ package ameca;
 //import com.mysql.cj.util.StringUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,11 +18,11 @@ import java.util.Locale;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.net.URLEncoder;
-//import org.apache.http.client.utils.URIBuilder;
 
 
 
@@ -40,6 +41,11 @@ public class Comercios extends HttpServlet
       throws ServletException, IOException
 
    {  //    htmls.logger.fine("homeOsoc. Carga servlet\n--");
+	   
+	HttpSession session = request.getSession(false)!= null ? request.getSession(false): request.getSession();
+	String user_level  = session.getAttribute("user_level") != null ?  (String)session.getAttribute("user_level") : "0" ;
+	String user_name  = session.getAttribute("user_name") != null ?  (String)session.getAttribute("user_name") : "" ;      
+	   
     if (!HTML.getIgnited_actividades())
          HTML.Carga_actividades();
     if (!HTML.getIgnited_zonas())
@@ -71,7 +77,7 @@ public class Comercios extends HttpServlet
     String codigo_postal  = request.getParameter ("codigo_postal") != null ?  request.getParameter ("codigo_postal") : "" ;
     String nombre_responsable  = request.getParameter ("nombre_responsable") != null ?  request.getParameter ("nombre_responsable") : "" ;
     String observaciones = request.getParameter ("observaciones") != null ?  request.getParameter ("observaciones") : "" ;
-    String id_zona  = request.getParameter ("id_zona") != null ?  request.getParameter ("id_zona") : "0" ;
+    //String id_zona  = request.getParameter ("id_zona") != null ?  request.getParameter ("id_zona") : "0" ;
     String id_localidad  = request.getParameter ("id_localidad") != null ?  request.getParameter ("id_localidad") : "" ;
     String nro_telefono  = request.getParameter ("nro_telefono") != null ?  request.getParameter ("nro_telefono") : "" ;
     String nro_telefono2  = request.getParameter ("nro_telefono2") != null ?  request.getParameter ("nro_telefono2") : "" ;
@@ -97,80 +103,92 @@ public class Comercios extends HttpServlet
     String imp_iva  = request.getParameter ("imp_iva") != null ?  request.getParameter ("imp_iva") : "" ;
     String imp_tot  = request.getParameter ("imp_tot") != null ?  request.getParameter ("imp_tot") : "" ;
 
-    
-    if(operacion.equals("find"))
-        {
-        out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
-        out.println("<br>\n<h1>Buscar Comercio</h1>"+
-                    "\n<form action='/ameca/comercios' name='busca'>\n\t" +
-                    "\n\t<table><tr><td>Ingrese CUIT del Comercio: </td><td><input type='text' name='nro_cuit'></td><td rowspan='2' valign='middle' align='center' width='90px'> <img src=\"/ameca/imgs/ok.png\" style=\"width:48px;height:48px;\" onclick=\"document.busca.submit();\" onmouseover=\"this.style.cursor='pointer'\">\n</td></tr>\n\t");
-        out.println("\n<tr><td>Ingrese Calle del Establecimiento: </td><td><input type='text' name='direccion_establecimiento'></td></tr></table>");       
-        out.println("<input type='hidden' name='operacion' value='find'> "+ 
-                    "\n</form><br><br><br>");
+ 	if (user_level.equals("0"))
+	{
+     out.println("<!DOCTYPE html><html><head><title>Ameca - Password</title>\n </head> \n <body>  \n\n <br><br> \n");
+	 out.println("<script>"
+		+   "function go() { window.document.location.replace(\"/ameca/inicio\"); \n ;} \n "
+		+   "document.body.style.background='brown'; \n window.setTimeout(go, 10); \n"  // acá habría que poner cartel de logueo
+		+ "</script><br>Ingrese al sistema!<br>"
+		+ "</body></html>");
+	}
+	else
+	{
+       switch (operacion) {
+           case "find":
+               out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
+               out.println("<br>\n<h1>Buscar Comercio</h1>" +
+                       "\n<form action='/ameca/comercios' name='busca'>\n\t" +
+                       "\n\t<table><tr><td>Ingrese CUIT del Comercio: </td><td><input type='text' name='nro_cuit'></td><td rowspan='2' valign='middle' align='center' width='90px'> <img src=\"/ameca/imgs/ok.png\" style=\"width:48px;height:48px;\" onclick=\"document.busca.submit();\" onmouseover=\"this.style.cursor='pointer'\">\n</td></tr>\n\t");
+               out.println("\n<tr><td>Ingrese Calle del Establecimiento: </td><td><input type='text' name='direccion_establecimiento'></td></tr></table>");
+               out.println("<input type='hidden' name='operacion' value='find'> " +
+                       "\n</form><br><br><br>");
 
 
-        if (!cuit_calle.equals(""))
-            out.println(this.TablaFindComercios(cuit_calle));
-        else if(!nro_cuit.equals("--") || !direccion_establecimiento.equals(""))
-             out.println(this.TablaFindComercios(nro_cuit, direccion_establecimiento));
+               if (!cuit_calle.equals(""))  // se agrega nombre_responsable
+                   out.println(this.TablaFindComercios(cuit_calle));
+               else if (!nro_cuit.equals("--") || !direccion_establecimiento.equals(""))
+                   out.println(this.TablaFindComercios(nro_cuit, direccion_establecimiento));
 
 
-        out.println("<table><tr><td height='377px'></td></tr></table>"); 
-        out.println(HTML.getTail());
+               out.println("<table><tr><td height='377px'></td></tr></table>");
+               out.println(HTML.getTail());
 
-        }
-    else if (operacion.equals("new"))
-        {
-        out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic())); //devuelve la mitad de la tabla con <tr>s hasta las catgegs del menu (inicio, comercios, liquidaciones, facturacion).
-        if (id_comercio.equals("0"))
-            out.println("<br><h2>Nuevo Comercio:</h2> <br>");
-        else
-            out.println("<br><h2>Editar Comercio:</h2> <br>");
-        out.println("\n<form action='/ameca/comercios' name='comercio' method='post'><table cellSpacing='0' cellPadding='0'>\n\t"+
-                    "<tr>\n\t\t<td>CUIT: </td><td><input type='text' name='nro_cuit' value='"+nro_cuit+"'></td>  <td>CUIT Admin.: </td><td><input type='text' name='nro_cuit_admin' value='"+nro_cuit_admin+"'></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Razon Social: </td><td><input type='text' name='razon_social' value='"+razon_social+"'></td>  <td></td><td></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Nombre Responsable: </td><td><input type='text' name='nombre_responsable' value='"+nombre_responsable+"'></td>  <td></td><td></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Domicilio Fiscal: </td><td><input type='text' name='domicilio_fiscal' value='"+domicilio_fiscal+"'></td> <td>C&oacute;digo Postal: </td> <td><input type='text' name='codigo_postal' value='"+codigo_postal+"'></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Localidad: </td><td>"+HTML.getDropLocalidades()+"</td>\t"+
-                    "\t<td></td> <td></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Telefono: </td><td><input type='text' name='nro_telefono' value='"+nro_telefono+"'></td> <td>Telefono2: </td> <td><input type='text' name='nro_telefono2' value='"+nro_telefono2+"'></td> </tr>\n\t"+
-                    "<tr>\n\t\t<td>Email: </td><td><input type='email' name='email' value='"+email+"'></td><td></td><td></td></tr>");
-        if (id_comercio.equals("0"))
-            out.println("<tr>\n\t\t<td>Fecha de Alta: </td><td><input type='text' name='periodo_alta' disabled></td> <td>Fecha de Baja</td> <td><input type='text' name='periodo_baja' disabled></td></tr>");
-        else
-            {out.println("<tr>\n\t\t<td>Fecha de Alta: </td><td><input type='text' name='periodo_alta' value='"+periodo_alta+"' size='8'></td> <td>Fecha de Baja</td> <td><input type='text' name='periodo_baja' value='"+periodo_baja+"' disabled size='8'>");
-              if (periodo_baja.equals("-"))
-                    out.println(" <a href='/ameca/comercios?operacion=ab&op2=baja&id_comercio="+id_comercio+"'> Dar de baja </a> </td></tr>");
-              else
-                    out.println(" <a href='/ameca/comercios?operacion=ab&op2=alta&id_comercio="+id_comercio+"'> Dar de alta </a> </td></tr>");
-             out.println("\n <script> document.comercio.id_localidad.value='"+id_localidad+"'; \n </script>");
-            }
+               break;
+           case "new":
+               out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic())); //devuelve la mitad de la tabla con <tr>s hasta las catgegs del menu (inicio, comercios, liquidaciones, facturacion).
 
-        out.println("<tr>\n\t\t<td valign='top'>Observaciones: </td><td colspan='3'><textarea name='observaciones' cols='60' rows='6'>"+observaciones+"</textarea></td> </tr>");
+               if (id_comercio.equals("0"))
+                   out.println("<br><h2>Nuevo Comercio:</h2> <br>");
+               else
+                   out.println("<br><h2>Editar Comercio:</h2> <br>");
+               out.println("\n<form action='/ameca/comercios' name='comercio' method='post'><table cellSpacing='0' cellPadding='0'>\n\t" +
+                       "<tr>\n\t\t<td>CUIT: </td><td><input type='text' name='nro_cuit' value='" + nro_cuit + "'></td>  <td>CUIT Admin.: </td><td><input type='text' name='nro_cuit_admin' value='" + nro_cuit_admin + "'></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Razon Social: </td><td><input type='text' name='razon_social' value='" + razon_social + "'></td>  <td></td><td></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Nombre Responsable: </td><td><input type='text' name='nombre_responsable' value='" + nombre_responsable + "'></td>  <td></td><td></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Domicilio Fiscal: </td><td><input type='text' name='domicilio_fiscal' value='" + domicilio_fiscal + "'></td> <td>C&oacute;digo Postal: </td> <td><input type='text' name='codigo_postal' value='" + codigo_postal + "'></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Localidad: </td><td>" + HTML.getDropLocalidades() + "</td>\t" +
+                       "\t<td></td> <td></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Telefono: </td><td><input type='text' name='nro_telefono' value='" + nro_telefono + "'></td> <td>Telefono2: </td> <td><input type='text' name='nro_telefono2' value='" + nro_telefono2 + "'></td> </tr>\n\t" +
+                       "<tr>\n\t\t<td>Email: </td><td><input type='email' name='email' value='" + email + "'></td><td></td><td></td></tr>");
+               if (id_comercio.equals("0"))
+                   out.println("<tr>\n\t\t<td>Fecha de Alta: </td><td><input type='text' name='periodo_alta' disabled></td> <td>Fecha de Baja</td> <td><input type='text' name='periodo_baja' disabled></td></tr>");
+               else {
+                   out.println("<tr>\n\t\t<td>Fecha de Alta: </td><td><input type='text' name='periodo_alta' value='" + periodo_alta + "' size='8'></td> <td>Fecha de Baja</td> <td><input type='text' name='periodo_baja' value='" + periodo_baja + "' disabled size='8'>");
+                   if (periodo_baja.equals("-"))
+                       out.println(" <a href='/ameca/comercios?operacion=ab&op2=baja&id_comercio=" + id_comercio + "'> Dar de baja </a> </td></tr>");
+                   else
+                       out.println(" <a href='/ameca/comercios?operacion=ab&op2=alta&id_comercio=" + id_comercio + "'> Dar de alta </a> </td></tr>");
+                   out.println("\n <script> document.comercio.id_localidad.value='" + id_localidad + "'; \n </script>");
+               }
 
-        out.println("</table><input type='hidden' name='operacion' value='save'> <input type='hidden' name='id_comercio' value='"+id_comercio+"'> </form>\n\n");
+               out.println("<tr>\n\t\t<td valign='top'>Observaciones: </td><td colspan='3'><textarea name='observaciones' cols='60' rows='6'>" + observaciones + "</textarea></td> </tr>");
 
-        out.println("<table><tr><td height='30px'></td></tr></table>"); // aca va el contenido del cuerpo bajo, mas claro
+               out.println("</table><input type='hidden' name='operacion' value='save'> <input type='hidden' name='id_comercio' value='" + id_comercio + "'> </form>\n\n");
 
-        if (id_comercio.equals("0"))
-            out.println("<table><tr><td><img src='/ameca/imgs/back.png'></td> ");
-        else
-            out.println("<table><tr><td><a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'><img src='/ameca/imgs/back.png'></a></td> ");
+               out.println("<table><tr><td height='30px'></td></tr></table>"); // aca va el contenido del cuerpo bajo, mas claro
 
-        out.println("<td width='320px'></td>"
-                + "<td><img src=\"/ameca/imgs/ok_big.png\" onclick=\"document.comercio.submit();\" onmouseover=\"this.style.cursor='pointer'\"></td></tr></table> <br><br>");
 
-        out.println(HTML.getTail());                   
+               if (id_comercio.equals("0"))
+                   out.println("<table><tr><td><img src='/ameca/imgs/back.png'></td> ");
+               else
+                   out.println("<table><tr><td><a href='/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "&nro_cuit=" + nro_cuit + "'><img src='/ameca/imgs/back.png'></a></td> ");
 
-        }
-    else if (operacion.equals("save")) //guarda (insert o update) los datos recibidos del formulario del comercio ya completo
-        {
-        String res="";
-        if (id_comercio == null || !id_comercio.matches("-?\\d+(\\.\\d+)?"))
-            id_comercio="0";
+               out.println("<td width='320px'></td>"
+                       + "<td><img src=\"/ameca/imgs/ok_big.png\" onclick=\"document.comercio.submit();\" onmouseover=\"this.style.cursor='pointer'\"></td></tr></table> <br><br>");
 
-        out.println("<html><head><title>Ameca - Save Data</title>\n </head> \n <body>  \n\n ");
-        
+               out.println(HTML.getTail());
+
+               break;
+           case "save":
+//guarda (insert o update) los datos recibidos del formulario del comercio ya completo
+           {
+               String res;
+               if (id_comercio == null || !id_comercio.matches("-?\\d+(\\.\\d+)?"))
+                   id_comercio = "0";
+
+               out.println("<html><head><title>Ameca - Save Data</title>\n </head> \n <body>  \n\n ");
+
 /*        out.println("charset: "+Charset.defaultCharset().displayName()+"<br> ");
         out.println("locale: "+Locale.getDefault()+"<br> ");
         out.println("nombre1: "+nombre_responsable+"<br> ");
@@ -178,123 +196,124 @@ public class Comercios extends HttpServlet
         out.println("nombre3 decode, ISO-8859-1: "+URLDecoder.decode(nombre_responsable, "ISO-8859-1")+"<br> ");
         out.println("nombre4 decode, US-ASCII: "+URLDecoder.decode(nombre_responsable, "US-ASCII")+"<br> ");
         out.println("nombre5 decode, UTF-8: "+URLDecoder.decode(nombre_responsable, "UTF-8")+"<br> ");
-        
+
 */
-        if (id_comercio.equals("0"))
-            res=this.insertaComercio(nro_cuit, razon_social, nombre_responsable, domicilio_fiscal, id_localidad, nro_telefono, email, codigo_postal, nro_telefono2, observaciones, nro_cuit_admin);
-        else
-            res=this.updateComercio(id_comercio, nro_cuit, razon_social, nombre_responsable, domicilio_fiscal, id_localidad, nro_telefono, email, periodo_alta, nro_cuit_admin, codigo_postal, nro_telefono2, observaciones);
+               if (id_comercio.equals("0"))
+                   res = this.insertaComercio(nro_cuit, razon_social, nombre_responsable, domicilio_fiscal, id_localidad, nro_telefono, email, codigo_postal, nro_telefono2, observaciones, nro_cuit_admin);
+               else
+                   res = this.updateComercio(id_comercio, nro_cuit, razon_social, nombre_responsable, domicilio_fiscal, id_localidad, nro_telefono, email, periodo_alta, nro_cuit_admin, codigo_postal, nro_telefono2, observaciones);
 
-        if (res != null && res.matches("-?\\d+(\\.\\d+)?"))
-               out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+res+"\");} document.body.style.background='green'; \n window.setTimeout(go, 40); \n</script><br>");
-       else
-               out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\");} \n document.body.style.background='red'; \n window.setTimeout(go, 9000); \n</script><br><br>Query: "+res);
+               if (res != null && res.matches("-?\\d+(\\.\\d+)?"))
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + res + "\");} document.body.style.background='green'; \n window.setTimeout(go, 40); \n</script><br>");
+               else
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "\");} \n document.body.style.background='red'; \n window.setTimeout(go, 9000); \n</script><br><br>Query: " + res);
 
-        out.println("</body></html>");
+               out.println("</body></html>");
 
-        }
-    else if (operacion.equals("detalle"))
-        {
-        out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
-        out.println("<br><br><br>");
-
-
-        out.println("<table width='1820px' bgcolor='#E8E7C1' cellspacing='0'>\n\t"
-                + "<tr><th bgcolor='#ccc793' width='5px'></th> <th align='left' colspan='3' bgcolor='#ccc793' width='1810px'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<table cellspacing='0'><tr><td><a href='/ameca/comercios?operacion=new'><img src='/ameca/imgs/cmrc_google48.png'></a></td><td width='10px'></td> <td style='height:64px; font-family:Arial; font-size:40px; font-weight: bold;'>Administrar Comercio</td></tr></table></th> <th bgcolor='#ccc793' width='5px'> </th></tr>"
-                + "<tr><td colspan='5' height='15px'></td></tr>"
-                + "<tr><td></td><td rowspan='2' valign='top' width='510px'>"+this.DatosComercioTable(id_comercio)+"</td> <td width='20px'></td> <td valign='top' align='left' width=1010'><table cellspacing='0'><tr><td style='height:56px; font-family:Arial; font-size:30px; font-weight: bold;'>Establecimientos</td> <td width='8px'></td><td><a href='/ameca/establecimientos?operacion=new&id_comercio=" + id_comercio + "&nro_cuit="+nro_cuit+"'> <img src='/ameca/imgs/sucu48.png'></a></td></tr></table></td><td></td>");
-
-        out.println("<tr><td></td><td></td>"
-             //   + "<td valign='top'>"+this.getPerfilImpositivo(id_comercio)+"</td><td></td>"
-                + "<td valign='top'>"+this.DatosEstablecimientoTable(id_comercio, nro_cuit)+"</td><td></td>\n\t</tr>\t\n\n");
+               break;
+           }
+           case "detalle":
+               out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
+               out.println("<br><br><br>");
 
 
-        out.println("<tr><td colspan='5' height='15px'></td></tr></table><br><br><br><br>");
+               out.println("<table width='1820px' bgcolor='#E8E7C1' cellspacing='0'>\n\t"
+                       + "<tr><th bgcolor='#ccc793' width='5px'></th> <th align='left' colspan='3' bgcolor='#ccc793' width='1810px'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<table cellspacing='0'><tr><td><a href='/ameca/comercios?operacion=new'><img src='/ameca/imgs/cmrc_google48.png'></a></td><td width='10px'></td> <td style='height:64px; font-family:Arial; font-size:40px; font-weight: bold;'>Administrar Comercio</td></tr></table></th> <th bgcolor='#ccc793' width='5px'> </th></tr>"
+                       + "<tr><td colspan='5' height='15px'></td></tr>"
+                       + "<tr><td></td><td rowspan='2' valign='top' width='510px'>" + this.DatosComercioTable(id_comercio) + "</td> <td width='20px'></td> <td valign='top' align='left' width=1010'><table cellspacing='0'><tr><td style='height:56px; font-family:Arial; font-size:30px; font-weight: bold;'>Establecimientos</td> <td width='8px'></td><td><a href='/ameca/establecimientos?operacion=new&id_comercio=" + id_comercio + "&nro_cuit=" + nro_cuit + "'> <img src='/ameca/imgs/sucu48.png'></a></td></tr></table></td><td></td>");
 
-        out.println(HTML.getTail());                    
-
-        }
-    else if (operacion.equals("perfil"))
-        {
-        String categ=categ_monotributo.equals("0")?categ_autonomo:categ_monotributo;
-        out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
-        out.println("<br><h2>Editar Perfil Impositivo:</h2><br><br>"+
-                 "\n\n<script>\n");
-        out.println(htm.getScriptCategsIVA());
-        out.println("\n\n</script>");
-
-        out.println("<form name='perfil' action='/ameca/comercios'>"
-                + "<table width='1100px' bgcolor='#E8E7C1' cellspacing='0' border='0'>\n\t"
-                + "<tr> <td style='width:250px;position:sticky;'> CUIT: </td> <td style='width:900px;position:sticky;'> "+nro_cuit+"</td> </tr> "
-                + "<tr><td>NOMBRE: </td> <td>"+nombre_responsable+"</td></tr> "
-                + "<tr><td>DOMICILIO FISCAL: </td> <td>"+domicilio_fiscal+"</td></tr>"
-                + "<tr><td height='15px' colspan='2'></td></tr> "
-                + "<tr><td>Condicion IIBB: </td><td align='left'>"+HTML.getForm_iibb()+"</td> </tr>"
-                + "<tr><td>Condicion IVA: </td><td align='left'>"+HTML.getForm_iva()+"</td> </tr>"
-                + "<tr><td>Categoria IVA: </td><td align='left'><select name='categ'></select></td> </tr>");
+               out.println("<tr><td></td><td></td>"
+                       //   + "<td valign='top'>"+this.getPerfilImpositivo(id_comercio)+"</td><td></td>"
+                       + "<td valign='top'>" + this.DatosEstablecimientoTable(id_comercio, nro_cuit) + "</td><td></td>\n\t</tr>\t\n\n");
 
 
-        out.println( "<tr><td height='35px' colspan='2'><input type='hidden' name='id_comercio' value='"+id_comercio+"'> <input type='hidden' name='operacion' value='save_perfil'> <input type='hidden' name='categ_autonomo'> <input type='hidden' name='categ_monotributo'>  </td></tr> ");
+               out.println("<tr><td colspan='5' height='15px'></td></tr></table><br><br><br><br>");
 
-        out.println("<tr><td colspan='2'> <table width='650px'> <tr> <td><a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'><img src='/ameca/imgs/back.png'></a></td> "
-                + "<td width='160px'></td>"
-                + "<td><img src=\"/ameca/imgs/ok_big.png\" onclick=\"if(document.perfil.condicion_iva.value==1) {document.perfil.categ_autonomo.value=0; document.perfil.categ_monotributo.value=document.perfil.categ.value; } else {document.perfil.categ_autonomo.value=document.perfil.categ.value; document.perfil.categ_monotributo.value=0; } document.perfil.submit();\" onmouseover=\"this.style.cursor='pointer'\"></td></tr></table> </td> </tr> </table><br><br>");
-        
- //       out.println("<a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'><img src='/ameca/imgs/back.png'></a> <br>");
+               out.println(HTML.getTail());
 
-        out.println("\n </form> \n <script>"
-                + "document.perfil.condicion_iibb.value='"+condicion_iibb+"'; "
-                + "document.perfil.condicion_iva.value='"+condicion_iva+"';"
-                + "make("+condicion_iva+", "+categ+");"
-                + "</script><br><br><br>");
+               break;
+           case "perfil":
+               String categ = categ_monotributo.equals("0") ? categ_autonomo : categ_monotributo;
+               out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
+               out.println("<br><h2>Editar Perfil Impositivo:</h2><br><br>" +
+                       "\n\n<script>\n");
+               out.println(htm.getScriptCategsIVA());
+               out.println("\n\n</script>");
+
+               out.println("<form name='perfil' action='/ameca/comercios'>"
+                       + "<table width='1100px' bgcolor='#E8E7C1' cellspacing='0' border='0'>\n\t"
+                       + "<tr> <td style='width:250px;position:sticky;'> CUIT: </td> <td style='width:900px;position:sticky;'> " + nro_cuit + "</td> </tr> "
+                       + "<tr><td>NOMBRE: </td> <td>" + nombre_responsable + "</td></tr> "
+                       + "<tr><td>DOMICILIO FISCAL: </td> <td>" + domicilio_fiscal + "</td></tr>"
+                       + "<tr><td height='15px' colspan='2'></td></tr> "
+                       + "<tr><td>Condicion IIBB: </td><td align='left'>" + HTML.getForm_iibb() + "</td> </tr>"
+                       + "<tr><td>Condicion IVA: </td><td align='left'>" + HTML.getForm_iva() + "</td> </tr>"
+                       + "<tr><td>Categoria IVA: </td><td align='left'><select name='categ'></select></td> </tr>");
 
 
-        out.println(HTML.getTail());                    
+               out.println("<tr><td height='35px' colspan='2'><input type='hidden' name='id_comercio' value='" + id_comercio + "'> <input type='hidden' name='operacion' value='save_perfil'> <input type='hidden' name='categ_autonomo'> <input type='hidden' name='categ_monotributo'>  </td></tr> ");
 
-        }
-    else if (operacion.equals("save_perfil")) //guarda los datos recibidos del formulario ya completo
-        {
-        out.println("<html><head><title>Ameca - Save Data</title>\n\n</head>" +
-                    "<body>  \n\n  "+
-                    "\nValores recibidos del formulario: <br>"+
-                    "\n<table cellSpacing='0' cellPadding='0'>\n\t"+
-                    "<tr>\n\t\t<td>CUIT: "+nro_cuit+"</td></tr>"+
-                    "<tr>\n\t\t<td>Condicion iibb: "+condicion_iibb+"</td></tr>"+
-                    "\n\t<tr>\n\t\t<td>Condicion iva: "+condicion_iva+"</td></tr>"+
-                    "\n\t<tr>\n\t\t<td>Categoria autonomo: "+categ_autonomo+"</td></tr>"+
-                    "\n\t<tr>\n\t\t<td>Categoria monotributo: "+categ_monotributo+"</td></tr>"+
-                    "</table>");
+               out.println("<tr><td colspan='2'> <table width='650px'> <tr> <td><a href='/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "&nro_cuit=" + nro_cuit + "'><img src='/ameca/imgs/back.png'></a></td> "
+                       + "<td width='160px'></td>"
+                       + "<td><img src=\"/ameca/imgs/ok_big.png\" onclick=\"if(document.perfil.condicion_iva.value==1) {document.perfil.categ_autonomo.value=0; document.perfil.categ_monotributo.value=document.perfil.categ.value; } else {document.perfil.categ_autonomo.value=document.perfil.categ.value; document.perfil.categ_monotributo.value=0; } document.perfil.submit();\" onmouseover=\"this.style.cursor='pointer'\"></td></tr></table> </td> </tr> </table><br><br>");
 
-        String res=this.updateComercio_perfil (id_comercio, condicion_iibb, condicion_iva, categ_autonomo, categ_monotributo); 
-        //out.println("<br><br>Insert: "+res);
-        if (res != null && res.matches("-?\\d+(\\.\\d+)?"))
-                out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\");} \n document.body.style.background='green'; window.setTimeout(go, 100); \n</script>\n</body>\n</html>");
-        else
-                out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\");} \n document.body.style.background='red'; window.setTimeout(go, 9000); \n</script><br><br>query: "+res+"\n\n</body>\n</html>");
+               //       out.println("<a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'><img src='/ameca/imgs/back.png'></a> <br>");
 
-        //out.println("<script>function go() {window.location.href=\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\";} \n window.setTimeout(go, 9000); \n</script>");
+               out.println("\n </form> \n <script>"
+                       + "document.perfil.condicion_iibb.value='" + condicion_iibb + "'; "
+                       + "document.perfil.condicion_iva.value='" + condicion_iva + "';"
+                       + "make(" + condicion_iva + ", " + categ + ");"
+                       + "</script><br><br><br>");
 
-        //out.println("<a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"'>Volver</a> <br><br>");
 
-        }
-    else if (operacion.equals("compras")) // ultimo requerimiento
-        {
-        out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
-        out.println("<br><h2>Resumen de Compras:</h2><br><br>");
-       
-        if (op2.equals("insert"))
-        {       //out.println("pre update: false, "+periodo+", "+id_comercio+", "+imp_neto_g+", "+imp_neto_ng+", "+imp_op_ex+", "+imp_iva+", "+imp_tot);
-                out.println (this.updateResumenCompras (false, periodo, id_comercio, imp_neto_g, imp_neto_ng, imp_op_ex, imp_iva, imp_tot));
-                //out.println("post update ");
-        }
-        if (op2.equals("update"))
-               out.println (this.updateResumenCompras (true, periodo, id_comercio, imp_neto_g, imp_neto_ng, imp_op_ex, imp_iva, imp_tot));
-        
-        out.println(this.ResumenCompras(id_comercio, nro_cuit, nombre_responsable, periodo)); 
-        
-        out.println("<br><br><br><br><br><br><br><br>");
+               out.println(HTML.getTail());
 
-        out.println(HTML.getTail());            
+               break;
+           case "save_perfil":
+//guarda los datos recibidos del formulario ya completo
+           {
+               out.println("<html><head><title>Ameca - Save Data</title>\n\n</head>" +
+                       "<body>  \n\n  " +
+                       "\nValores recibidos del formulario: <br>" +
+                       "\n<table cellSpacing='0' cellPadding='0'>\n\t" +
+                       "<tr>\n\t\t<td>CUIT: " + nro_cuit + "</td></tr>" +
+                       "<tr>\n\t\t<td>Condicion iibb: " + condicion_iibb + "</td></tr>" +
+                       "\n\t<tr>\n\t\t<td>Condicion iva: " + condicion_iva + "</td></tr>" +
+                       "\n\t<tr>\n\t\t<td>Categoria autonomo: " + categ_autonomo + "</td></tr>" +
+                       "\n\t<tr>\n\t\t<td>Categoria monotributo: " + categ_monotributo + "</td></tr>" +
+                       "</table>");
+
+               String res = this.updateComercio_perfil(id_comercio, condicion_iibb, condicion_iva, categ_autonomo, categ_monotributo);
+               //out.println("<br><br>Insert: "+res);
+               if (res != null && res.matches("-?\\d+(\\.\\d+)?"))
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "\");} \n document.body.style.background='green'; window.setTimeout(go, 100); \n</script>\n</body>\n</html>");
+               else
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "\");} \n document.body.style.background='red'; window.setTimeout(go, 9000); \n</script><br><br>query: " + res + "\n\n</body>\n</html>");
+
+               //out.println("<script>function go() {window.location.href=\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\";} \n window.setTimeout(go, 9000); \n</script>");
+
+               //out.println("<a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"'>Volver</a> <br><br>");
+
+               break;
+           }
+           case "compras":
+// ultimo requerimiento
+
+               out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
+               out.println("<br><h2>Resumen de Compras:</h2><br><br>");
+
+               if (op2.equals("insert")) {       //out.println("pre update: false, "+periodo+", "+id_comercio+", "+imp_neto_g+", "+imp_neto_ng+", "+imp_op_ex+", "+imp_iva+", "+imp_tot);
+                   out.println(this.updateResumenCompras(false, periodo, id_comercio, imp_neto_g, imp_neto_ng, imp_op_ex, imp_iva, imp_tot));
+                   //out.println("post update ");
+               }
+               if (op2.equals("update"))
+                   out.println(this.updateResumenCompras(true, periodo, id_comercio, imp_neto_g, imp_neto_ng, imp_op_ex, imp_iva, imp_tot));
+
+               out.println(this.ResumenCompras(id_comercio, nro_cuit, nombre_responsable, periodo));
+
+               out.println("<br><br><br><br><br><br><br><br>");
+
+               out.println(HTML.getTail());
         /*
         if (res != null && res.matches("-?\\d+(\\.\\d+)?"))
                 out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\");} \n document.body.style.background='green'; window.setTimeout(go, 100); \n</script>\n</body>\n</html>");
@@ -302,27 +321,31 @@ public class Comercios extends HttpServlet
                 out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\");} \n document.body.style.background='red'; window.setTimeout(go, 9000); \n</script><br><br>query: "+res+"\n\n</body>\n</html>");
 */
 
-        }
-    else if (operacion.equals("ab")) //guarda los datos recibidos del formulario ya completo
-        {
-        String res="";
-        out.println("<html><head><title>Ameca - Save Data</title>\n\n</head>" +
-                    "<body>  \n\n  "+
-                    "\nValores recibidos del formulario: <br>"+
-                    "\n<table cellSpacing='0' cellPadding='0'>\n\t"+
-                    "<tr>\n\t\t<td>CUIT: "+nro_cuit+"</td></tr>"+
-                    "\n\t<tr>\n\t\t<td>op2: "+op2+"</td></tr>"+
-                    "</table>");
+               break;
+           case "ab":
+//guarda los datos recibidos del formulario ya completo
+           {
+               String res;
+               out.println("<html><head><title>Ameca - Save Data</title>\n\n</head>" +
+                       "<body>  \n\n  " +
+                       "\nValores recibidos del formulario: <br>" +
+                       "\n<table cellSpacing='0' cellPadding='0'>\n\t" +
+                       "<tr>\n\t\t<td>CUIT: " + nro_cuit + "</td></tr>" +
+                       "\n\t<tr>\n\t\t<td>op2: " + op2 + "</td></tr>" +
+                       "</table>");
 
-            res=this.abComercio (id_comercio, op2); 
-        //out.println("<br><br>Insert: "+res);
-        if (res != null && res.equals("1"))
-                out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\");} \n document.body.style.background='green'; window.setTimeout(go, 40); \n</script>\n</body>\n</html>");
-        else
-                out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\");} \n document.body.style.background='red'; window.setTimeout(go, 9000); \n</script><br><br>query: "+res+"\n\n</body>\n</html>");
+               res = this.abComercio(id_comercio, op2);
+               //out.println("<br><br>Insert: "+res);
+               if (res != null && res.equals("1"))
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "\");} \n document.body.style.background='green'; window.setTimeout(go, 40); \n</script>\n</body>\n</html>");
+               else
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "\");} \n document.body.style.background='red'; window.setTimeout(go, 9000); \n</script><br><br>query: " + res + "\n\n</body>\n</html>");
 
 
-        }
+               break;
+           }
+       }  //fin del switch sobre op
+    }  //fin del else, ie, level_user es 1 o 2 sobre op
 
         
                 
@@ -339,7 +362,7 @@ public class Comercios extends HttpServlet
         ResultSet rs = null;
         int id_localidad=0;
         String razon_social="", nombre_responsable="", domicilio_fiscal="", nro_telefono="", email="", nro_cuit="";
-    String resul="", codigo_postal="", periodo_baja="", observaciones="", periodo_alta="", nro_telefono2="", nro_cuit_admin="";
+    String resul, codigo_postal="", periodo_baja="", observaciones="", periodo_alta="", nro_telefono2="", nro_cuit_admin="";
         try 
             {
             con=CX.getCx_pool();
@@ -388,10 +411,10 @@ public class Comercios extends HttpServlet
                     "\n\t<tr>\n\t\t<td height='2px'></td></tr> "+
                     "<tr><td><textarea name='observaciones' cols='60' rows='8'>"+observaciones+"</textarea></td></tr>" +
                     "\n\t<tr>\n\t\t<td align='center'><br><a href='/ameca/liquidaciones?operacion=ver_c&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"&periodo="+htm.getPeriodo_nostatic()+"'>Ver D.D.J.J s</a></td></tr>" +
-                    "\n\t<tr>\n\t\t<td align='center'><br><a href='/ameca/comercios?operacion=compras&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"&nombre_responsable="+URLEncoder.encode(nombre_responsable, "UTF-8")+"&periodo="+htm.getPeriodo_nostatic()+"'>Resumen Compras</a></td></tr>" +
-                    "\n\t<tr>\n\t\t<td align='center'><br><a href='/ameca/comercios?operacion=new&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"&razon_social="+URLEncoder.encode(razon_social)+"&nombre_responsable="+URLEncoder.encode(nombre_responsable)+
-                                                            "&domicilio_fiscal="+URLEncoder.encode(domicilio_fiscal)+"&id_localidad="+id_localidad+"&codigo_postal="+codigo_postal+"&nro_telefono="+nro_telefono+"&nro_telefono2="+nro_telefono2+
-                                                            "&email="+URLEncoder.encode(email)+"&observaciones="+URLEncoder.encode(observaciones)+"&periodo_alta="+periodo_alta+"&periodo_baja="+periodo_baja+"&nro_cuit_admin="+nro_cuit_admin+"'>Editar Comercio</a></td></tr>" +
+                    "\n\t<tr>\n\t\t<td align='center'><br><a href='/ameca/comercios?operacion=compras&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"&nombre_responsable="+URLEncoder.encode(nombre_responsable, StandardCharsets.UTF_8)+"&periodo="+htm.getPeriodo_nostatic()+"'>Resumen Compras</a></td></tr>" +
+                    "\n\t<tr>\n\t\t<td align='center'><br><a href='/ameca/comercios?operacion=new&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"&razon_social="+URLEncoder.encode(razon_social, StandardCharsets.UTF_8)+"&nombre_responsable="+URLEncoder.encode(nombre_responsable, StandardCharsets.UTF_8)+
+                                                            "&domicilio_fiscal="+URLEncoder.encode(domicilio_fiscal, StandardCharsets.UTF_8)+"&id_localidad="+id_localidad+"&codigo_postal="+codigo_postal+"&nro_telefono="+nro_telefono+"&nro_telefono2="+nro_telefono2+
+                                                            "&email="+URLEncoder.encode(email, StandardCharsets.UTF_8)+"&observaciones="+URLEncoder.encode(observaciones, StandardCharsets.UTF_8)+"&periodo_alta="+periodo_alta+"&periodo_baja="+periodo_baja+"&nro_cuit_admin="+nro_cuit_admin+"'>Editar Comercio</a></td></tr>" +
                     "</table>";
             
             
@@ -449,15 +472,15 @@ public class Comercios extends HttpServlet
                                             "activo_iibb_periodo, activo_iva_periodo, c.id_condicion_iva, id_condicion_iibb, periodo,  " +  //24
                                             "(SELECT COUNT(*) from Establecimientos ee where ee.id_comercio="+id_comercio+") as 'count', " + //25
                                             "em.base_imponible, em.compra_iva, em.percepcion_iva, percepcion_iibb, em.saldo_iva_reporte, em.saldo_iibb_reporte, "  + // 31
-                                            "c.nombre_responsable, e.casa_matriz, c.nro_cuit " + // 34
+                                            "c.nombre_responsable, e.casa_matriz, c.nro_cuit, e.periodo_baja " + // 35
                             " FROM Establecimientos e LEFT JOIN EstablecimientosLiquiMes em USING(id_establecimiento)  LEFT JOIN Comercios c USING (id_comercio) "+
                             " WHERE e.id_comercio="+id_comercio+
                             " ORDER BY periodo DESC";                                                                
-    String resul="", nombre_establecimiento, direccion_establecimiento, tel1, tel2, email, periodo, 
-                     responsable, nro_pago_facil, cod_postal, debug="", nombre_responsable="", casa_matriz;
-        int id_establecimiento=0, id_zona, id_localidad, id_actividad, activo_iibb=0, activo_iva=0, condicion_iva=0, condicion_iibb=0;
-        Double  alicpf=0d, saldoivaf=0d, saldoiibbf=0d, ganf=0d, afipf=0d, sussf=0d, comisionf=0d, subtotalf=0d, saldopf=0d, totalf=0d, 
-                    bi=0d, compra_iva=0d, pcp_iva=0d, pcp_iibb=0d, saldoiva_reportef=0d, saldoiibb_reportef=0d;
+    String resul, nombre_establecimiento, direccion_establecimiento, tel1, tel2, email, periodo,
+                     responsable, nro_pago_facil, cod_postal, nombre_responsable, casa_matriz, periodo_baja_e;
+        int id_establecimiento, id_zona, id_localidad, id_actividad, activo_iibb, activo_iva, condicion_iva, condicion_iibb;
+        double alicpf, saldoivaf, saldoiibbf, ganf, afipf, sussf, comisionf=0d, subtotalf, saldopf, totalf,
+                    bi, compra_iva, pcp_iva, pcp_iibb, saldoiva_reportef=0d, saldoiibb_reportef=0d;
         //Double bi_d=0d;
         try 
             {
@@ -465,9 +488,9 @@ public class Comercios extends HttpServlet
             pst = con.prepareStatement(query);
             rs = pst.executeQuery();
             resul="\n<table cellpadding='2' cellspacing='2' border='0' width='100%'><tr>\n\n";
-            int i=0, tot_establecs=0, vueltas=0;  // contador de establecimientos impresos y cant de establecimientos
+            int i=0, tot_establecs, vueltas=0;  // contador de establecimientos impresos y cant de establecimientos
             int [] establecs=new int[9];
-            Boolean salgo=false, salteo=false;   // cuando obtengo todos los establecimientos salgo del query
+            boolean salgo=false, salteo;   // cuando obtengo todos los establecimientos salgo del query
 
             while (rs.next() && !salgo)
                 {  vueltas++;
@@ -506,6 +529,7 @@ public class Comercios extends HttpServlet
                         nro_cuit=rs.getString(34);
                         nro_pago_facil=rs.getString(11);
                         cod_postal=rs.getString(12);
+                        periodo_baja_e=rs.getString(35);
 
                        if (periodo.equals(htm.getPeriodo_nostatic()))
                           {
@@ -517,7 +541,7 @@ public class Comercios extends HttpServlet
                             ganf=rs.getDouble(16);
                             afipf=rs.getDouble(17);
                             sussf=rs.getDouble(18);
-                            comisionf=rs.getDouble(19);
+                            //comisionf=rs.getDouble(19);
                             bi=rs.getDouble(26);
                           
                             compra_iva=rs.getDouble(27);
@@ -535,13 +559,13 @@ public class Comercios extends HttpServlet
                           }
                        else
                           {
-                            alicpf=0d; 
+                            //alicpf=0d;
                             saldoivaf=0d; 
                             saldoiibbf=0d; 
                             ganf=0d; 
                             afipf=0d; 
                             sussf=0d; 
-                            comisionf=0d;
+                            //comisionf=0d;
 
                             subtotalf=0d;
                             saldopf=0d;
@@ -561,20 +585,29 @@ public class Comercios extends HttpServlet
             // nuevo saldo del reporte            saldoivaf=rs.getFloat(3);
             //  nuevo campo          saldoiibbf=rs.getFloat(4);
 
-
-                        resul+="<td valign='top'>\n"+
-                               "\n <table border='1' cellpadding='2' cellspacing='0'> "+
-                               "\n <tr> <td width='380px' height='25'> <table width='100%'><tr><td> Direcci&oacute;n: "+direccion_establecimiento+"  </td><td valign='right'><a href='/ameca/establecimientos?operacion=new&id_establecimiento=" + id_establecimiento + "&id_comercio=" + id_comercio + "&nombre_establecimiento=" + URLEncoder.encode(nombre_establecimiento) + "&direccion_establecimiento=" + URLEncoder.encode(direccion_establecimiento)
-                                + "&codigo_postal=" + cod_postal + "&id_zona=" + id_zona + "&id_localidad=" + id_localidad + "&id_actividad=" + id_actividad + "&email_establecimiento=" + URLEncoder.encode(email)
-                                + "&nro_telefono_establecimiento=" + tel1 + "&nro_telefono2_establecimiento=" + tel2 + "&nro_pago_facil=" + nro_pago_facil + "&casa_matriz="+casa_matriz+"'><img src=\"/ameca/imgs/edit32.png\" alt='search' align='bottom'></a>&nbsp; </td> </tr></table> </td> </tr>"+
+						if (periodo_baja_e.length()>2)
+								resul+="<td valign='top'>\n \n <table border='1'  bordercolor='lightgrey' cellpadding='2' cellspacing='0'> ";
+						else
+								resul+="<td valign='top'>\n \n <table border='1' cellpadding='2' cellspacing='0'> ";
+                        
+						resul+="\n <tr> <td width='380px' height='25'> <table width='100%'><tr><td> Direcci&oacute;n: "+direccion_establecimiento+"  </td><td valign='right'><a href='/ameca/establecimientos?operacion=new&id_establecimiento=" + id_establecimiento + "&id_comercio=" + id_comercio + "&nombre_establecimiento=" + URLEncoder.encode(nombre_establecimiento, StandardCharsets.UTF_8) + "&direccion_establecimiento=" + URLEncoder.encode(direccion_establecimiento, StandardCharsets.UTF_8)
+                                + "&codigo_postal=" + cod_postal + "&id_zona=" + id_zona + "&id_localidad=" + id_localidad + "&id_actividad=" + id_actividad + "&email_establecimiento=" + URLEncoder.encode(email, StandardCharsets.UTF_8)
+                                + "&nro_telefono_establecimiento=" + tel1 + "&nro_telefono2_establecimiento=" + tel2 + "&nro_pago_facil=" + nro_pago_facil + "&casa_matriz="+casa_matriz+"&periodo_baja_e="+periodo_baja_e+" '><img src=\"/ameca/imgs/edit32.png\" alt='search' align='bottom'></a>&nbsp; </td> </tr></table> </td> </tr>"+
                            //    "\n\t<tr> <td height='1px'> </td></tr> \n"+
                                "\n\t<tr> <td> \n";
                         if (casa_matriz.equals("1"))
-                                resul+="<p style='color:black; background-color:lightblue; margin-top: 1px; font-family: Arial, Helvetica, sans-serif;'>&nbsp;&nbsp;&nbsp;Casa Matriz</p>\n\t";
+								 if (periodo_baja_e.length()>2)
+										resul+="<p style='color:grey; margin-top: 1px; font-family: Arial, Helvetica, sans-serif;'>&nbsp;&nbsp;&nbsp;Casa Matriz</p>\n\t";
+                                 else 
+										resul+="<p style='color:black; background-color:lightblue; margin-top: 1px; font-family: Arial, Helvetica, sans-serif;'>&nbsp;&nbsp;&nbsp;Casa Matriz</p>\n\t";
                         else
-                                resul+="<p style='color:black; background-color:lightgrey; margin-top: 1px; font-family: Arial, Helvetica, sans-serif;'>&nbsp;&nbsp;&nbsp;Sucursal</p>\n\t";
-                            
-                            
+								 if (periodo_baja_e.length()>2)
+										resul+="<p style='color:grey; margin-top: 1px; font-family: Arial, Helvetica, sans-serif;'>&nbsp;&nbsp;&nbsp;Sucursal</p>\n\t";
+								 else
+										resul+="<p style='color:black; background-color:lightgrey; margin-top: 1px; font-family: Arial, Helvetica, sans-serif;'>&nbsp;&nbsp;&nbsp;Sucursal</p>\n\t";
+								 
+                         if (periodo_baja_e.length()>2)
+								resul+="<i>";
                         resul+="\t\t&nbsp;&nbsp;&nbsp;Nombre: "+nombre_establecimiento+"<br>\n\t"+
                                "\n\t&nbsp;&nbsp;&nbsp;C&oacute;digo Postal: "+cod_postal+"<br>\n\t"+
                                "\t\t&nbsp;&nbsp;&nbsp;Actividad: "+htm.getActividad(id_actividad)+"<br>\n\t"+
@@ -585,10 +618,11 @@ public class Comercios extends HttpServlet
                                "\t\t&nbsp;&nbsp;&nbsp;Tel&eacute;fono: "+tel1+"<br>\n\t" +
                                "\t\t&nbsp;&nbsp;&nbsp;Tel&eacute;fono2: "+tel2+"<br>\n\t" +
                                "\t\t&nbsp;&nbsp;&nbsp;E-mail: "+email+"\n\t <br>"+
-                               "\t\t&nbsp;&nbsp;&nbsp;N&uacute;mero Pago F&aacute;cil: "+nro_pago_facil+"\n\t "+
-                               "\t\t<table cellspacing='0'><tr><td>&nbsp;&nbsp;&nbsp;Observaciones:</td><td width='20'></td><td> <a href=\"#\" onClick=\"MyWindow=window.open('/ameca/establecimientos?operacion=notes&nombre_responsable_establecimiento="+URLEncoder.encode(nombre_responsable)+"&direccion_establecimiento="+URLEncoder.encode(direccion_establecimiento)+"&nro_cuit="+nro_cuit+"&id_establecimiento="+id_establecimiento+"','MyWindow','width=600,height=300'); return false;\"><img src=\"/ameca/imgs/notepad.png\" style=\"width:32px;height:32px;\" onmouseover=\"this.style.cursor='pointer'\">\n</a></td></tr></table>  <br>\n\t <br>";
+                               "\t\t&nbsp;&nbsp;&nbsp;N&uacute;mero Pago F&aacute;cil: "+nro_pago_facil+"\n\t <br> "+
+                               "\t\t&nbsp;&nbsp;&nbsp;Periodo de Baja: "+periodo_baja_e+"\n\t "+
+                               "\t\t<table cellspacing='0'><tr><td>&nbsp;&nbsp;&nbsp;Observaciones:</td><td width='20'></td><td> <a href=\"#\" onClick=\"MyWindow=window.open('/ameca/establecimientos?operacion=notes&nombre_responsable_establecimiento="+URLEncoder.encode(nombre_responsable, StandardCharsets.UTF_8)+"&direccion_establecimiento="+URLEncoder.encode(direccion_establecimiento, StandardCharsets.UTF_8)+"&nro_cuit="+nro_cuit+"&id_establecimiento="+id_establecimiento+"','MyWindow','scrollbars=no,resizable=no,width=760,height=300'); return false;\"><img src=\"/ameca/imgs/notepad.png\" style=\"width:32px;height:32px;\" onmouseover=\"this.style.cursor='pointer'\">\n</a></td></tr></table>  <br>\n\t <br>";
 
-                        if (activo_iva>0 )   // && condicion_iva!=1 solo sacar el href que permite incluirlo incluye
+                        if (activo_iva>0 )   // && condicion_iva!=1 solo sacar el href que permite incluirlo 
                                 {resul+="<img src='/ameca/imgs/green_yes.png' style='width:21px;height:21px;'>&nbsp;&nbsp;<b>IVA</b>: ACTIVO. <a href='/ameca/establecimientos?operacion=activar&op_activar=iva&valor_activar=0&id_establecimiento="+id_establecimiento+"&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'> Excluir <img src='/ameca/imgs/red_no.png' style='width:11px;height:11px;'></a>"+
                                             "\n <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Base: $"+String.format(Locale.GERMAN, "%,.2f", bi)+
                                             "\n <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Compra: $"+String.format(Locale.GERMAN, "%,.2f", compra_iva)+
@@ -617,7 +651,7 @@ public class Comercios extends HttpServlet
                                    resul+="<a href='/ameca/establecimientos?operacion=activar&op_activar=iibb&valor_activar=1&id_establecimiento="+id_establecimiento+"&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'> Incluir <img src='/ameca/imgs/green_yes.png' style='width:11px;height:11px;'></a>";
                            }
 
-                      resul+="\n <br><br> <b>Reporte:</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='/ameca/reportes?operacion=edit&id_establecimiento=" + id_establecimiento + "&periodo=" + periodo + "&direccion_establecimiento=" + URLEncoder.encode(direccion_establecimiento) + "&nro_cuit="+nro_cuit+"'>Editar</a><br> "+
+                      resul+="\n <br><br> <b>Reporte:</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='/ameca/reportes?operacion=edit&id_establecimiento=" + id_establecimiento + "&periodo=" + periodo + "&direccion_establecimiento=" + URLEncoder.encode(direccion_establecimiento, StandardCharsets.UTF_8) + "&nro_cuit="+nro_cuit+"'>Editar</a><br> "+
                                    "\n<table>";
                       
                       if (saldoiva_reportef>0f &&  Math.round(saldoiva_reportef - saldoivaf) !=0)
@@ -633,12 +667,15 @@ public class Comercios extends HttpServlet
                                    "\t\tTotal Pago Facil: $ "+String.format(Locale.GERMAN, "%,.2f",totalf)+"<br>\n\t"+
                                    "\n\t</td></tr><tr><td height=10px></td></tr>"+
                                    "</table>"+
-                                   "</td> </tr> "+
+                                   "</td> </tr> ";
+                         if (periodo_baja_e.length()>2)
+								resul+="</i>";                                   
+                                   
                           //       "\n\t<tr> <td height='1px'> </td></tr> \n"+
-                                 "<tr> <td> "+
+                         resul+="<tr> <td> "+
                                  "<table border='0'><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\n</td>"+
-                                 "<td><a href='/ameca/establecimientos?operacion=liqui&id_establecimiento="+id_establecimiento+"&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"&periodo="+htm.getPeriodo_nostatic()+"&direccion_establecimiento="+URLEncoder.encode(direccion_establecimiento)+"'>Editar Base</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>\n"+
-                                 "<td><a href='/ameca/liquidaciones?operacion=ver_e&id_establecimiento="+id_establecimiento+"&id_comercio="+id_comercio+"&direccion_establecimiento="+URLEncoder.encode(direccion_establecimiento)+"&periodo="+htm.getPeriodo_nostatic()+"&nro_cuit="+nro_cuit+"'>Ver DDJJs</a> </td></tr>"+
+                                 "<td><a href='/ameca/establecimientos?operacion=liqui&id_establecimiento="+id_establecimiento+"&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"&periodo="+htm.getPeriodo_nostatic()+"&direccion_establecimiento="+URLEncoder.encode(direccion_establecimiento, StandardCharsets.UTF_8)+"'>Editar Base</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>\n"+
+                                 "<td><a href='/ameca/liquidaciones?operacion=ver_e&id_establecimiento="+id_establecimiento+"&id_comercio="+id_comercio+"&direccion_establecimiento="+URLEncoder.encode(direccion_establecimiento, StandardCharsets.UTF_8)+"&periodo="+htm.getPeriodo_nostatic()+"&nro_cuit="+nro_cuit+"'>Ver DDJJs</a> </td></tr>"+
                                  "</table>\n";
                         resul+="\n\t</td></tr></table>\n\n";
                         resul+="\n\t</td><td width='10px'></td>";
@@ -646,7 +683,7 @@ public class Comercios extends HttpServlet
                         } // fin del if del salteo
                  if(i==tot_establecs)
                     {salgo=true;
-                      debug+="<br>salgo:"+Boolean.toString(salgo)+"<br>";
+                     // debug+="<br>salgo:"+ salgo +"<br>";
                     }
                 } // fin while
 
@@ -693,7 +730,7 @@ public class Comercios extends HttpServlet
         PreparedStatement pst = null;
         ResultSet rs = null;
 
-    String resul="";
+    String resul;
         try 
             {
             con=CX.getCx_pool();
@@ -705,7 +742,7 @@ public class Comercios extends HttpServlet
             if (rs.next())
                 resul="\n<table border='1' cellpadding='3' cellspacing='0' width='400px'>"+
                         "\n\t<tr>\n\t\t<td><table><tr><td width='300px' align='center'><b> Perfil Impositivo</b></td>    "
-                    + "<td align='right' width='100px'><a href='/ameca/comercios?operacion=perfil&id_comercio=" + id_comercio + "&nro_cuit=" + rs.getString(5) + "&condicion_iibb=" + rs.getString(1) + "&condicion_iva=" + rs.getString(2) + "&categ_monotributo=" + rs.getString(3) + "&categ_autonomo=" + rs.getString(4) + "&nombre_responsable=" + URLEncoder.encode(rs.getString(6)) + "&domicilio_fiscal=" + URLEncoder.encode(rs.getString(7) )+ "'>  "
+                    + "<td align='right' width='100px'><a href='/ameca/comercios?operacion=perfil&id_comercio=" + id_comercio + "&nro_cuit=" + rs.getString(5) + "&condicion_iibb=" + rs.getString(1) + "&condicion_iva=" + rs.getString(2) + "&categ_monotributo=" + rs.getString(3) + "&categ_autonomo=" + rs.getString(4) + "&nombre_responsable=" + URLEncoder.encode(rs.getString(6), StandardCharsets.UTF_8) + "&domicilio_fiscal=" + URLEncoder.encode(rs.getString(7), StandardCharsets.UTF_8 )+ "'>  "
                     + "<img src=\"/ameca/imgs/edit32.png\" alt='search' align='bottom'></a>&nbsp; </td> </tr></table> "
                     + "</td></tr> \n\t"
                      +   "\n\t<tr>\n\t\t<td>Condicion I.I.B.B.: <b>"+HTML.getCondicionIIBB(rs.getInt(1))+"</b><br>\n\t"+
@@ -759,7 +796,7 @@ public class Comercios extends HttpServlet
         Connection con = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
-        Float ganf=0f, afipf=0f, sussf=0f, saldoivaf=0f, saldoiibbf=0f, alicpf=0f, comisionf=0f, subtotalf=0f, saldopf=0f, totalf=0f;
+        float ganf, afipf, sussf, saldoivaf, saldoiibbf, alicpf, comisionf, subtotalf, saldopf, totalf;
         String resul="";
     
         try 
@@ -848,6 +885,7 @@ public class Comercios extends HttpServlet
                                     + " WHERE id_comercio="+id_comercio;
         try 
             {
+			HTML.perseus_bool_iibb=false; HTML.perseus_bool_iva=false;
             con=CX.getCx_pool();
             pst = con.prepareStatement(resul);
             resul_insert = pst.executeUpdate();
@@ -921,7 +959,7 @@ public class Comercios extends HttpServlet
         Connection con = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
-        long resul_insert=0;
+        long resul_insert;
  
     String resul="INSERT INTO Comercios (nro_cuit, razon_social, nombre_responsable, domicilio_fiscal, id_localidad, nro_telefono, email, "
                                     + " periodo_alta, periodo_baja, codigo_postal, nro_telefono2, observaciones_comercio, nro_cuit_admin) "
@@ -930,6 +968,7 @@ public class Comercios extends HttpServlet
                                                   codigo_postal+"', '"+nro_telefono2+"', '"+observaciones+"', '"+nro_cuit_admin+"')";
         try 
             {
+            HTML.perseus_bool_iibb=false; HTML.perseus_bool_iva=false;
             con=CX.getCx_pool();
             pst = con.prepareStatement(resul);
                                                
@@ -960,7 +999,7 @@ public class Comercios extends HttpServlet
                 }
             catch (SQLException ex) {
               // Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
-                return ex.getMessage();
+                resul= ex.getMessage();
                 }
             }
         
@@ -987,6 +1026,7 @@ public class Comercios extends HttpServlet
                     "WHERE id_comercio="+id_comercio;
 try 
             {
+            HTML.perseus_bool_iibb=false; HTML.perseus_bool_iva=false;
             con=CX.getCx_pool();
             pst = con.prepareStatement(resul);
                                                
@@ -1031,16 +1071,16 @@ try
         
     String query, resul="\n\n<table class='bicolor' align='center'><tr><th>CUIT</th><th>Razon Social</th><th>Responsable</th><th>Domicilio Fiscal (Comercio)</th><th>Direcci&oacute;n Establecimiento</th><th></th></tr>\n";
 
-//        if (StringUtils.isStrictlyNumeric(cuit_calle.substring(0,2)))
+//        if (HTML.isNumber(cuit_calle.substring(0,2)))
         if (cuit_calle != null && cuit_calle.substring(0,2).matches("-?\\d+(\\.\\d+)?"))
-            query="SELECT c.id_comercio, razon_social, nombre_responsable, c.nro_cuit, domicilio_fiscal, '--' "+
-                   "FROM Comercios c "+
+            query="SELECT c.id_comercio, razon_social, nombre_responsable, c.nro_cuit, domicilio_fiscal, e.direccion_establecimiento, e.periodo_baja  "+
+                   "FROM Comercios c JOIN Establecimientos e ON c.id_comercio = e.id_comercio "+
                    "WHERE c.nro_cuit like '"+cuit_calle+"%' "+
                    "ORDER BY c.nro_cuit";
         else
-            query= "SELECT c.id_comercio, razon_social, nombre_responsable, c.nro_cuit, domicilio_fiscal, direccion_establecimiento "+
+            query= "SELECT c.id_comercio, razon_social, nombre_responsable, c.nro_cuit, domicilio_fiscal, direccion_establecimiento, e.periodo_baja "+
                    "FROM Comercios c, Establecimientos e "+
-                   "WHERE c.id_comercio=e.id_comercio AND (domicilio_fiscal like '%"+cuit_calle+"%' OR direccion_establecimiento like '%"+cuit_calle+"%') "+
+                   "WHERE c.id_comercio=e.id_comercio AND (domicilio_fiscal like '%"+cuit_calle+"%' OR direccion_establecimiento like '%"+cuit_calle+"%' OR nombre_responsable like '%"+cuit_calle+"%') "+
                    "ORDER BY c.nro_cuit" ;
         try 
             {
@@ -1048,14 +1088,17 @@ try
             pst = con.prepareStatement(query);
             rs = pst.executeQuery();
             while (rs.next())
-        resul+="<tr><td>"+rs.getString(4)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3) +"</td><td>"+rs.getString(5) +"</td><td>"+rs.getString(6) +"</td><td><a href=\"/ameca/comercios?operacion=detalle&nro_cuit="+rs.getString(4)+"&id_comercio="+rs.getString(1)+"\">Ver Comercio</a></tr>\n";
+				if (rs.getString(7).length()>2)
+					resul+="<tr style='font-variant:small-caps;font-style:italic;color:grey;font-size:18px;'><td>"+rs.getString(4)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3) +"</td><td>"+rs.getString(5) +"</td><td>"+rs.getString(6) +"</td><td><a href=\"/ameca/comercios?operacion=detalle&nro_cuit="+rs.getString(4)+"&id_comercio="+rs.getString(1)+"\">Ver Comercio</a></tr>\n";
+				else
+					resul+="<tr style='font-variant:small-caps;font-style:normal;color:black;font-size:18px;'><td>"+rs.getString(4)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3) +"</td><td>"+rs.getString(5) +"</td><td>"+rs.getString(6) +"</td><td><a href=\"/ameca/comercios?operacion=detalle&nro_cuit="+rs.getString(4)+"&id_comercio="+rs.getString(1)+"\">Ver Comercio</a></tr>\n";
 
             resul+="</table>";
             }
             
         catch (SQLException ex) {
                resul= "<br><br>ERROR: "+ex.getMessage()+"<br><br>";
-            //Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
+            //Logger lgr = Logger.getLogger(HikariCPEx.class.getName());   style="color:#0000ff"
             //lgr.log(Level.SEVERE, ex.getMessage(), ex);
             }
         finally 
@@ -1087,18 +1130,17 @@ try
         PreparedStatement pst = null;
         ResultSet rs = null;
         
-    String  query="", resul="\n\n<table class='bicolor' align='center'><tr><th>CUIT</th><th>Razon Social</th><th>Responsable</th><th>Domicilio Fiscal (Comercio)</th><th>Direcci&oacute;n Establecimiento</th><th></th></tr>\n";
+    String  query, resul="\n\n<table class='bicolor' align='center'><tr><th>CUIT</th><th>Razon Social</th><th>Responsable</th><th>Domicilio Fiscal (Comercio)</th><th>Direcci&oacute;n Establecimiento</th><th></th></tr>\n";
         if (nro_cuit.equals("--") && calle_comercio.equals(""))
                 return "";
         else if (!nro_cuit.equals("--") && calle_comercio.equals(""))
-                query= "SELECT id_comercio, razon_social, nombre_responsable, nro_cuit, domicilio_fiscal, '--' "+
-                                       "FROM Comercios  WHERE nro_cuit like '"+nro_cuit+"%' ";
-        else if (nro_cuit.equals("--") && !calle_comercio.equals(""))
-                query= "SELECT c.id_comercio, razon_social, nombre_responsable, c.nro_cuit, domicilio_fiscal, direccion_establecimiento "+
+                query= "SELECT c.id_comercio, c.razon_social, c.nombre_responsable, c.nro_cuit, domicilio_fiscal, direccion_establecimiento, e.periodo_baja  "+
+                                       "FROM Comercios c JOIN Establecimientos e ON c.id_comercio = e.id_comercio   WHERE c.nro_cuit like '"+nro_cuit+"%' ";
+        else if (nro_cuit.equals("--"))
+                query= "SELECT c.id_comercio, razon_social, nombre_responsable, c.nro_cuit, domicilio_fiscal, direccion_establecimiento, e.periodo_baja "+
                                        "FROM Comercios c, Establecimientos e WHERE c.id_comercio=e.id_comercio AND (domicilio_fiscal like '%"+calle_comercio+"%' OR direccion_establecimiento like '%"+calle_comercio+"%')" ;
-        else if (!nro_cuit.equals("--") && !calle_comercio.equals(""))
-                query= "SELECT c.id_comercio, razon_social, nombre_responsable, c.nro_cuit, domicilio_fiscal, direccion_establecimiento' "+
-                                       "FROM Comercios c, Establecimientos e WHERE c.id_comercio=e.id_comercio  AND c.nro_cuit like '"+nro_cuit+"%' AND (direccion_establecimiento like '%"+calle_comercio+"%' OR domicilio_fiscal like '%"+calle_comercio+"%')";
+        else query= "SELECT c.id_comercio, razon_social, nombre_responsable, c.nro_cuit, domicilio_fiscal, direccion_establecimiento, e.periodo_baja "+
+                               "FROM Comercios c, Establecimientos e WHERE c.id_comercio=e.id_comercio  AND c.nro_cuit like '"+nro_cuit+"%' AND (direccion_establecimiento like '%"+calle_comercio+"%' OR domicilio_fiscal like '%"+calle_comercio+"%')";
         
         try 
             {
@@ -1106,8 +1148,11 @@ try
             pst = con.prepareStatement(query);
             rs = pst.executeQuery();
 
-            while (rs.next())
-        resul+="<tr><td>"+rs.getString(4)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3) +"</td><td>"+rs.getString(5) +"</td><td>"+rs.getString(6) +"</td><td><a href=\"/ameca/comercios?operacion=detalle&nro_cuit="+rs.getString(4)+"&id_comercio="+rs.getString(1)+"\">Ver Comercio</a></tr>\n";
+             while (rs.next())
+				if (rs.getString(7).length()>2)
+					resul+="<tr style='font-variant:small-caps;font-style:italic;color:grey;font-size:18px;'><td>"+rs.getString(4)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3) +"</td><td>"+rs.getString(5) +"</td><td>"+rs.getString(6) +"</td><td><a href=\"/ameca/comercios?operacion=detalle&nro_cuit="+rs.getString(4)+"&id_comercio="+rs.getString(1)+"\">Ver Comercio</a></tr>\n";
+				else
+					resul+="<tr style='font-variant:small-caps;font-style:normal;color:black;font-size:18px;'><td>"+rs.getString(4)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3) +"</td><td>"+rs.getString(5) +"</td><td>"+rs.getString(6) +"</td><td><a href=\"/ameca/comercios?operacion=detalle&nro_cuit="+rs.getString(4)+"&id_comercio="+rs.getString(1)+"\">Ver Comercio</a></tr>\n";
 
             resul+="</table>";
             }
@@ -1147,7 +1192,7 @@ try
         PreparedStatement pst = null;
         ResultSet rs = null;
         
-    String query, imp_neto_g="", imp_neto_ng="", imp_op_ex="", imp_iva="", imp_tot="", resul="";
+    String query, resul;
 
             query="SELECT imp_neto_gravado, imp_neto_no_gravado, imp_op_exentas, iva, imp_total "+
                    "FROM ComerciosCompras "+
@@ -1164,9 +1209,9 @@ try
                     resul= "\n<form action='/ameca/comercios' name='f_compras'> "+
                     "\n\n<table cellSpacing='0' cellPadding='0'>\n\t<tr><td colspan='2' align='center'>"+
                     "<table>"+
-                    "<tr>\n<td> <a href='/ameca/comercios?operacion=compras&id_comercio=" + id_comercio + "&nombre_responsable=" + URLEncoder.encode(nombre_responsable) + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_pre(periodo) + "'><img src='/ameca/imgs/back_go.png'></a></td>"+
+                    "<tr>\n<td> <a href='/ameca/comercios?operacion=compras&id_comercio=" + id_comercio + "&nombre_responsable=" + URLEncoder.encode(nombre_responsable, StandardCharsets.UTF_8) + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_pre(periodo) + "'><img src='/ameca/imgs/back_go.png'></a></td>"+
                              "<td> <input type='text' name='periodo' value='"+periodo+"' size='7'> </td>"+
-                             "\n<td> <a href='/ameca/comercios?operacion=compras&id_comercio=" + id_comercio + "&nombre_responsable=" + URLEncoder.encode(nombre_responsable) + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_prox(periodo) + "'><img src='/ameca/imgs/next_go.png'></a></td></tr>\n"+
+                             "\n<td> <a href='/ameca/comercios?operacion=compras&id_comercio=" + id_comercio + "&nombre_responsable=" + URLEncoder.encode(nombre_responsable, StandardCharsets.UTF_8) + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_prox(periodo) + "'><img src='/ameca/imgs/next_go.png'></a></td></tr>\n"+
                             "</table></td></tr>\n\n"+
                              "<br>" +
                              "<input type='hidden' name='operacion' value='compras'> "+
@@ -1190,9 +1235,9 @@ try
                     resul= "\n<form action='/ameca/comercios' name='f_compras'> "+
                     "\n\n<table cellSpacing='0' cellPadding='0'>\n\t<tr><td colspan='2' align='center'>"+
                     "<table>"+
-                    "<tr>\n<td> <a href='/ameca/comercios?operacion=compras&id_comercio=" + id_comercio + "&nombre_responsable=" + URLEncoder.encode(nombre_responsable) + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_pre(periodo) + "'><img src='/ameca/imgs/back_go.png'></a></td>"+
+                    "<tr>\n<td> <a href='/ameca/comercios?operacion=compras&id_comercio=" + id_comercio + "&nombre_responsable=" + URLEncoder.encode(nombre_responsable, StandardCharsets.UTF_8) + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_pre(periodo) + "'><img src='/ameca/imgs/back_go.png'></a></td>"+
                              "<td> <input type='text' name='periodo' value='"+periodo+"' size='7'> </td>"+
-                             "\n<td> <a href='/ameca/comercios?operacion=compras&id_comercio=" + id_comercio + "&nombre_responsable=" + URLEncoder.encode(nombre_responsable) + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_prox(periodo) + "'><img src='/ameca/imgs/next_go.png'></a></td></tr>\n"+
+                             "\n<td> <a href='/ameca/comercios?operacion=compras&id_comercio=" + id_comercio + "&nombre_responsable=" + URLEncoder.encode(nombre_responsable, StandardCharsets.UTF_8) + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_prox(periodo) + "'><img src='/ameca/imgs/next_go.png'></a></td></tr>\n"+
                             "</table></td></tr>\n\n"+
                              "<br>" +
                              "<input type='hidden' name='operacion' value='compras'> "+
@@ -1272,6 +1317,7 @@ try
 
         try 
             {
+            HTML.perseus_bool_iibb=false; HTML.perseus_bool_iva=false;
             con=CX.getCx_pool();
             pst = con.prepareStatement(resul);
             resul_insert = pst.executeUpdate();
@@ -1313,7 +1359,7 @@ try
         PreparedStatement pst = null;
         int resul_insert;
  
-    String resul="";
+    String resul;
     if (op2.equals("alta"))
           resul="UPDATE Comercios SET periodo_baja='-' "+
                    " WHERE id_comercio="+id_comercio;
@@ -1323,6 +1369,7 @@ try
 
         try 
             {
+            HTML.perseus_bool_iibb=false; HTML.perseus_bool_iva=false;
             con=CX.getCx_pool();
             pst = con.prepareStatement(resul);
             resul_insert = pst.executeUpdate();

@@ -1,11 +1,12 @@
 package ameca;
  
-/**
+
+/*
  *
  * @author manu
  */
 
-import com.mysql.cj.util.StringUtils;
+//import com.mysql.cj.util.StringUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -26,11 +27,11 @@ public class Establecimientos extends HttpServlet
     HTML htm=new HTML();
     
     public void doPost(HttpServletRequest request, HttpServletResponse response)
-	  throws ServletException, IOException
+	  throws IOException // ServletException,
    { doGet(request, response); }    
     
     public void doGet(HttpServletRequest request, HttpServletResponse response)
-	  throws ServletException, IOException
+	  throws IOException  //ServletException,
    {  
     //htmls.logger.fine("homeOsoc. Carga servlet\n--");
    
@@ -65,6 +66,7 @@ public class Establecimientos extends HttpServlet
     String nro_telefono2_establecimiento  = request.getParameter ("nro_telefono2_establecimiento") != null ?  request.getParameter ("nro_telefono2_establecimiento") : "" ;
     String email_establecimiento  = request.getParameter ("email_establecimiento") != null ?  request.getParameter ("email_establecimiento") : "" ;
     String observaciones  = request.getParameter ("observaciones") != null ?  request.getParameter ("observaciones") : "" ;
+    String obs_historicas  = request.getParameter ("obs_historicas") != null ?  request.getParameter ("obs_historicas") : "" ;
 
     String id_comercio  = request.getParameter ("id_comercio") != null ?  request.getParameter ("id_comercio") : "0" ;
     String id_establecimiento  = request.getParameter ("id_establecimiento") != null ?  request.getParameter ("id_establecimiento") : "0" ;
@@ -89,197 +91,191 @@ public class Establecimientos extends HttpServlet
     String saldo_iva  = request.getParameter ("saldo_iva") != null ?  request.getParameter ("saldo_iva") : "0" ;
     
     
-    if (!StringUtils.isStrictlyNumeric(id_establecimiento))   // caute que a los float los rechaza por tener un punto
+    if (!HTML.isNumber(id_establecimiento))   // caute que a los float los rechaza por tener un punto
         id_establecimiento="0";
-    if (!StringUtils.isStrictlyNumeric(id_establecimiento_mes))
+    if (!HTML.isNumber(id_establecimiento_mes))
         id_establecimiento_mes="0";
 
 
+       switch (operacion) {
+           case "new":
+               if (!HTML.getIgnited_actividades())
+                   HTML.Carga_actividades();
 
-
-    if (operacion.equals("new"))
-        {
-        if (!HTML.getIgnited_actividades())
-            HTML.Carga_actividades();
-
-        out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
-        if (id_establecimiento.equals("0"))
-            out.println("\n<br><h2>Nuevo Establecimiento</h2><br>");
-        else
-            out.println("\n<br><h2>Editar Establecimiento</h2><br>");
-
-        out.println("\n<form action='/ameca/establecimientos' name='establecimiento' method='post'><table cellSpacing='0' cellPadding='0'>\n\t"+
-                    "<table>" +
-                    "<tr>\n\t\t<td>Nombre Establecimiento: </td><td><input type='text' name='nombre_establecimiento' value='"+nombre_establecimiento+"'></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Direccion: </td><td><input type='text' name='direccion_establecimiento' value='"+direccion_establecimiento+"'></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Codigo Postal: </td><td><input type='text' name='codigo_postal' value='"+codigo_postal+"'></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Tipo de Establecimiento: </td><td><select name='casa_matriz'> <option value='1'>Casa Matriz</option><option value='0'>Sucursal</option></select> </td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Actividad: </td><td>"+HTML.getDropActividades()+"</td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Localidad: </td><td>"+HTML.getDropLocalidades()+"</td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Zona: </td><td>"+HTML.getDropZonas()+"</td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Numero Pago Facil: </td><td><input type='text' name='nro_pago_facil' value='"+nro_pago_facil+"'></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Nombre de Contacto: </td><td><input type='text' name='nombre_responsable_establecimiento' value='"+nombre_responsable_establecimiento+"'></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Telefono: </td><td><input type='text' name='nro_telefono_establecimiento' value='"+nro_telefono_establecimiento+"'></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Telefono2: </td><td><input type='text' name='nro_telefono2_establecimiento' value='"+nro_telefono2_establecimiento+"'></td></tr>\n\t"+
-                    "<tr>\n\t\t<td>Email: </td><td><input type='email' name='email_establecimiento' value='"+email_establecimiento+"'></td></tr>");
-
-        if (!id_establecimiento.equals("0"))
-                out.println("\n <script> document.establecimiento.id_actividad.value='"+id_actividad+"'; \n  document.establecimiento.id_localidad.value='"+id_localidad+"'; \n  document.establecimiento.id_zona.value='"+id_zona+"'; \n document.establecimiento.casa_matriz.value='"+casa_matriz+"'; \n </script>");
-        
-        out.println("</table><input type='hidden' name='operacion' value='save'>\n<input type='hidden' name='id_comercio' value='"+id_comercio+"'> <input type='hidden' name='nro_cuit' value='"+nro_cuit+"'> "
-                +   "<input type='hidden' name='id_establecimiento' value='"+id_establecimiento+"'><input type='hidden' name='activo_iibb' value='"+activo_iibb+"'> <input type='hidden' name='activo_iva' value='"+activo_iva+"'>"
-                +   "\n</form>\n\n");
-        out.println("<br><br>");
-
-        //out.println("<a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'><img src='/ameca/imgs/back.png'></a> <br>");
-        out.println("<table> <tr> <td><a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'><img src='/ameca/imgs/back.png'></a></td> "
-                + "<td width='200px'></td>"
-                + "<td><img src=\"/ameca/imgs/ok_big.png\" onclick=\"document.establecimiento.submit();\" onmouseover=\"this.style.cursor='pointer'\"></td></tr></table><br><br><br><br><br><br>");
-
-        out.println(HTML.getTail());
-
-        }
-    else if (operacion.equals("save")) //guarda los datos recibidos del formulario ya completo.  
-        {
-
-        out.println("<html><head><title>Ameca - Save Data</title>\n </head> \n <body>  \n\n ");
-
-        if (id_establecimiento.equals("0"))
-              id_establecimiento=this.insertaEstablecimiento (id_comercio, nombre_establecimiento, direccion_establecimiento, id_actividad, id_zona, id_localidad,  
-                                                                nro_telefono_establecimiento, email_establecimiento, nro_telefono2_establecimiento, nro_pago_facil, 
-                                                                codigo_postal, nombre_responsable_establecimiento, casa_matriz);
-        else
-              id_establecimiento=this.updateEstablecimiento(id_establecimiento, nombre_establecimiento, direccion_establecimiento, id_actividad, id_zona, id_localidad,  
-                                                                nro_telefono_establecimiento, email_establecimiento, nro_telefono2_establecimiento, nro_pago_facil, 
-                                                                codigo_postal, nombre_responsable_establecimiento, casa_matriz);
-              
-
-        //out.println("INSERT: "+id_establecimiento+"<br><br>"); //hopefully id_establecimiento
-       if (StringUtils.isStrictlyNumeric(id_establecimiento))
-               out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"\");} document.body.style.background='green'; \n window.setTimeout(go, 80); \n</script><br>");
-       else
-               out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"\");} \n document.body.style.background='red'; \n window.setTimeout(go, 9000); \n</script><br><br>Query: "+id_establecimiento);
-
-
-
-
-        //out.println("<a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'>Ver Comercio y Establecimientos</a> <br><br>");
-        //out.println("<a href='/ameca/establecimientos?operacion=new&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'>Nuevo Establecimiento</a>\n\n");
-        out.println("</body></html>");                    
-        }
-    else if(operacion.equals("liqui"))   // carga tributos de un establecimiento (editar mostly)
-        {
-        out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
-        out.println("\n<br><h2>Datos para el c&aacute;lculo impositivo</h2> <br> <br>"
-                + "CUIT: "+nro_cuit+" &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Direcci&oacute;n: "+direccion_establecimiento+"<br><br>\n"
-                + "<table>"
-                + "<tr>\n<td> <a href='/ameca/establecimientos?operacion=liqui&id_comercio=" + id_comercio + "&id_establecimiento=" + id_establecimiento + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_pre(periodo) + "'><img src='/ameca/imgs/back_go.png'></a></td>"
-                + "\n<td> <form action='/ameca/establecimientos' name='form_periodo'> "
-                + "<input type='text' name='periodo' value='"+periodo+"' size='7'>"
-                + "<input type='hidden' name='operacion' value='liqui'>\n<input type='hidden' name='id_comercio' value='"+id_comercio+"'>\n"
-                + "<input type='hidden' name='id_establecimiento' value='"+id_establecimiento+"'> \n<input type='hidden' name='nro_cuit' value='"+nro_cuit+"'> \n"
-                + "\n</form></td>"
-                + "\n<td><a href='/ameca/establecimientos?operacion=liqui&id_comercio=" + id_comercio + "&id_establecimiento=" + id_establecimiento + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_prox(periodo) + "'><img src='/ameca/imgs/next_go.png'></a></td></tr>"
-                + "</table>"+
-                    "<form action='/ameca/establecimientos' name='form_tributo'>\n"+
-                    "\n<table cellSpacing='0' cellPadding='0' border='1'>\n<tr>\n<td>"+
-                    "<input type='hidden' name='id_comercio' value='"+id_comercio+"'>"+
-                    "\n<input type='hidden' name='id_establecimiento' value='"+id_establecimiento+"'> \n\n"+
-                    "\n<input type='hidden' name='direccion_establecimiento' value='"+direccion_establecimiento+"'> \n\n"+
-                    "\n<input type='hidden' name='nro_cuit' value='"+nro_cuit+"'> \n\n"+
-                    //"\n<input type='hidden' name='periodo' value='"+periodo+"'> \n\n"+                
-                    "<input type='hidden' name='operacion' value='liqui_save'>\n");
-
-        out.println(this.getTable_carga_tributo(id_establecimiento, periodo, id_comercio));
-
-        out.println("\n\n</form><br><br>");
-
-
-        out.println("<table> <tr> <td><a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'><img src='/ameca/imgs/back.png'></a></td> "
-                + "<td width='250px'></td>"
-                + "<td><img src=\"/ameca/imgs/ok_big.png\" onclick=\"document.form_tributo.debito_iva.value=document.form_tributo.base_imponible.value*document.form_tributo.alicuota_iva.value/100; \n"
-                +                           "document.form_tributo.credito_iva.value=parseFloat(document.form_tributo.compra_iva.value)*parseFloat(document.form_tributo.alicuota_iva.value)/100; \n"
-                +                           "document.form_tributo.saldo_iva.value=parseFloat(document.form_tributo.debito_iva.value)-parseFloat(document.form_tributo.credito_iva.value)-parseFloat(document.form_tributo.percepcion_iva.value); \n"
-                +                           "document.form_tributo.debito_iibb.value=document.form_tributo.base_imponible.value*document.form_tributo.alicuota_iibb.value/100; \n"
-                +                           "document.form_tributo.saldo_iibb.value=parseFloat(document.form_tributo.debito_iibb.value)-parseFloat(document.form_tributo.percepcion_iibb.value); \n"
-                +                           "document.form_tributo.submit();\" onmouseover=\"this.style.cursor='pointer'\"></td>"
-                + "</tr></table>"
-                + "<br><br><br><br><br><br>");
-
-        out.println(HTML.getTail());
-
-        }
-    else if(operacion.equals("liqui_save"))
-        {
-        out.println("<html><head><title>Ameca - Guarda Actividad Impositiva</title>\n\n</head> \n <body>  \n\n  ");
-        String res;
-        if (id_establecimiento_mes.equals("0"))
-            res=this.insertaLiquiMes(id_establecimiento, periodo, base_imponible, alicuota_iva, alicuota_iibb, compra_iva, percepcion_iva, percepcion_iibb, saldo_iibb, saldo_iva, condicion_iva, condicion_iibb);
-        else
-            res=this.updateLiquiMes(id_establecimiento_mes, base_imponible, alicuota_iva, alicuota_iibb, compra_iva, percepcion_iva, percepcion_iibb);
-            
- 
-       if (StringUtils.isStrictlyNumeric(res))
-               out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"\");} document.body.style.background='green'; \n window.setTimeout(go, 80); \n</script><br>");
-       else
-               out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"\");} \n document.body.style.background='red'; \n window.setTimeout(go, 9000); \n</script><br><br>Query: "+res);
-        
-        
-        out.println("<br><a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"e&nro_cuit="+nro_cuit+"'>Volver</a>");
-        out.println("</body>\n\n</html>");
-
-        }
-                
-        else if (operacion.equals("activar")) //activa o desactiva al establecimiento para aparecer en listado IVA / IIBB
-            {
-            out.println("<html><head><title>Ameca - Save Data</title>\n\n</head> \n <body>");
-
-            String res=this.updateEstablecimiento_activar (id_establecimiento, op_activar, valor_activar);
-            
-            if (StringUtils.isStrictlyNumeric(res))
-                    out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\");} document.body.style.background='green'; \n window.setTimeout(go, 70); \n</script><br>");
-            else
-                    out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"\");} \n document.body.style.background='red'; \n window.setTimeout(go, 9500); \n</script><br><br>Query: "+res);
-            }   
-        else if (operacion.equals("notes")) //guarda los datos recibidos del formulario ya completo
-            {
-                String resul_insert="";
-                long i=0;
-                if (op2.equals("save"))
-                        {resul_insert=this.UpdateObservaciones (id_establecimiento, observaciones);
-                          if (resul_insert.equals("1"))
-                               out.println("<!DOCTYPE html>\n<html><head><title>Notas</title>\n</head> \n <body><script>function go() {window.close();} document.body.style.background='green'; \n window.setTimeout(go, 100); \n</script>\n OK<br></body></html>");
-                          else
-                               out.println("<!DOCTYPE html>\n<html><head><title>Notas</title>\n</head> \n <body><script>function go() {window.close();} document.body.style.background='red'; \n window.setTimeout(go, 10000); \n</script> <br>ERROR al guardar: "+resul_insert+"</body></html>");
-                              
-                              //out.println("<html><head><title>Notas - "+nro_cuit+"</title>\n </head> \n <body>ERROR al guardar: "+resul_insert+"</body></html>");
-                              //out.println("<html><head><title>Notas - "+nro_cuit+"</title>\n </head> \n <body>OK CERRAR</body></html>");
-                              
-                        }
-                else
-                        {
-                       observaciones=CargaObservaciones (id_establecimiento);
-
-                        out.println("<html><head><title>Notas - "+nro_cuit+"</title>\n </head> \n <body>  \n\n "+
-                                 " Observaciones del Establecimiento: "+nombre_responsable_establecimiento+", "+direccion_establecimiento+"<br><br>"+
-                                 "<form name='f_observaciones' action='/ameca/establecimientos' method='post'> "
-                                + "<input type='hidden' name='id_establecimiento' value='"+id_establecimiento+"'>"+
-                                   "<input type='hidden' name='operacion' value='notes'>"+
-                                   "<input type='hidden' name='op2' value='save'>"+
-                                 "<textarea name='observaciones' cols='70' rows='8'>"+observaciones+"</textarea><br>"
-                                + "<input type='submit'>\n"
-                                + "</form><br><br></body></html>");
-                        }
-
-
-
-/*               if (StringUtils.isStrictlyNumeric(id_establecimiento))
-                       out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"\");} document.body.style.background='green'; \n window.setTimeout(go, 80); \n</script><br>");
+               out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
+               if (id_establecimiento.equals("0"))
+                   out.println("\n<br><h2>Nuevo Establecimiento</h2><br>");
                else
-                       out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"\");} \n document.body.style.background='red'; \n window.setTimeout(go, 9000); \n</script><br><br>Query: "+id_establecimiento);
+                   out.println("\n<br><h2>Editar Establecimiento</h2><br>");
 
-  */                         
-        }
+               out.println("\n<form action='/ameca/establecimientos' name='establecimiento' method='post'><table cellSpacing='0' cellPadding='0'>\n\t" +
+                       "<table>" +
+                       "<tr>\n\t\t<td>Nombre Establecimiento: </td><td><input type='text' name='nombre_establecimiento' value='" + nombre_establecimiento + "'></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Direccion: </td><td><input type='text' name='direccion_establecimiento' value='" + direccion_establecimiento + "'></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Codigo Postal: </td><td><input type='text' name='codigo_postal' value='" + codigo_postal + "'></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Tipo de Establecimiento: </td><td><select name='casa_matriz'> <option value='1'>Casa Matriz</option><option value='0'>Sucursal</option></select> </td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Actividad: </td><td>" + HTML.getDropActividades() + "</td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Localidad: </td><td>" + HTML.getDropLocalidades() + "</td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Zona: </td><td>" + HTML.getDropZonas() + "</td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Numero Pago Facil: </td><td><input type='text' name='nro_pago_facil' value='" + nro_pago_facil + "'></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Nombre de Contacto: </td><td><input type='text' name='nombre_responsable_establecimiento' value='" + nombre_responsable_establecimiento + "'></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Telefono: </td><td><input type='text' name='nro_telefono_establecimiento' value='" + nro_telefono_establecimiento + "'></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Telefono2: </td><td><input type='text' name='nro_telefono2_establecimiento' value='" + nro_telefono2_establecimiento + "'></td></tr>\n\t" +
+                       "<tr>\n\t\t<td>Email: </td><td><input type='email' name='email_establecimiento' value='" + email_establecimiento + "'></td></tr>");
+
+               if (!id_establecimiento.equals("0"))
+                   out.println("\n <script> document.establecimiento.id_actividad.value='" + id_actividad + "'; \n  document.establecimiento.id_localidad.value='" + id_localidad + "'; \n  document.establecimiento.id_zona.value='" + id_zona + "'; \n document.establecimiento.casa_matriz.value='" + casa_matriz + "'; \n </script>");
+
+               out.println("</table><input type='hidden' name='operacion' value='save'>\n<input type='hidden' name='id_comercio' value='" + id_comercio + "'> <input type='hidden' name='nro_cuit' value='" + nro_cuit + "'> "
+                       + "<input type='hidden' name='id_establecimiento' value='" + id_establecimiento + "'><input type='hidden' name='activo_iibb' value='" + activo_iibb + "'> <input type='hidden' name='activo_iva' value='" + activo_iva + "'>"
+                       + "\n</form>\n\n");
+               out.println("<br><br>");
+
+               //out.println("<a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'><img src='/ameca/imgs/back.png'></a> <br>");
+               out.println("<table> <tr> <td><a href='/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "&nro_cuit=" + nro_cuit + "'><img src='/ameca/imgs/back.png'></a></td> "
+                       + "<td width='200px'></td>"
+                       + "<td><img src=\"/ameca/imgs/ok_big.png\" onclick=\"document.establecimiento.submit();\" onmouseover=\"this.style.cursor='pointer'\"></td></tr></table><br><br><br><br><br><br>");
+
+               out.println(HTML.getTail());
+
+               break;
+           case "save":
+//guarda los datos recibidos del formulario ya completo
+
+
+               out.println("<html><head><title>Ameca - Save Data</title>\n </head> \n <body>  \n\n ");
+
+               if (id_establecimiento.equals("0"))
+                   id_establecimiento = this.insertaEstablecimiento(id_comercio, nombre_establecimiento, direccion_establecimiento, id_actividad, id_zona, id_localidad,
+                           nro_telefono_establecimiento, email_establecimiento, nro_telefono2_establecimiento, nro_pago_facil,
+                           codigo_postal, nombre_responsable_establecimiento, casa_matriz);
+               else
+                   id_establecimiento = this.updateEstablecimiento(id_establecimiento, nombre_establecimiento, direccion_establecimiento, id_actividad, id_zona, id_localidad,
+                           nro_telefono_establecimiento, email_establecimiento, nro_telefono2_establecimiento, nro_pago_facil,
+                           codigo_postal, nombre_responsable_establecimiento, casa_matriz);
+
+
+               //out.println("INSERT: "+id_establecimiento+"<br><br>"); //hopefully id_establecimiento
+               if (HTML.isNumber(id_establecimiento))
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "&nro_cuit=" + nro_cuit + "\");} document.body.style.background='green'; \n window.setTimeout(go, 80); \n</script><br>");
+               else
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "&nro_cuit=" + nro_cuit + "\");} \n document.body.style.background='red'; \n window.setTimeout(go, 9000); \n</script><br><br>Query: " + id_establecimiento);
+
+
+               //out.println("<a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'>Ver Comercio y Establecimientos</a> <br><br>");
+               //out.println("<a href='/ameca/establecimientos?operacion=new&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'>Nuevo Establecimiento</a>\n\n");
+               out.println("</body></html>");
+               break;
+           case "liqui":
+// carga tributos de un establecimiento (editar mostly)
+
+               out.println(HTML.getHead("comercios", htm.getPeriodo_nostatic()));
+               out.println("\n<br><h2>Datos para el c&aacute;lculo impositivo</h2> <br> <br>"
+                       + "CUIT: " + nro_cuit + " &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Direcci&oacute;n: " + direccion_establecimiento + "<br><br>\n"
+                       + "<table>"
+                       + "<tr>\n<td> <a href='/ameca/establecimientos?operacion=liqui&id_comercio=" + id_comercio + "&id_establecimiento=" + id_establecimiento + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_pre(periodo) + "'><img src='/ameca/imgs/back_go.png'></a></td>"
+                       + "\n<td> <form action='/ameca/establecimientos' name='form_periodo'> "
+                       + "<input type='text' name='periodo' value='" + periodo + "' size='7'>"
+                       + "<input type='hidden' name='operacion' value='liqui'>\n<input type='hidden' name='id_comercio' value='" + id_comercio + "'>\n"
+                       + "<input type='hidden' name='id_establecimiento' value='" + id_establecimiento + "'> \n<input type='hidden' name='nro_cuit' value='" + nro_cuit + "'> \n"
+                       + "\n</form></td>"
+                       + "\n<td><a href='/ameca/establecimientos?operacion=liqui&id_comercio=" + id_comercio + "&id_establecimiento=" + id_establecimiento + "&nro_cuit=" + nro_cuit + "&periodo=" + htm.getPeriodo_prox(periodo) + "'><img src='/ameca/imgs/next_go.png'></a></td></tr>"
+                       + "</table>" +
+                       "<form action='/ameca/establecimientos' name='form_tributo'>\n" +
+                       "\n<table cellSpacing='0' cellPadding='0' border='1'>\n<tr>\n<td>" +
+                       "<input type='hidden' name='id_comercio' value='" + id_comercio + "'>" +
+                       "\n<input type='hidden' name='id_establecimiento' value='" + id_establecimiento + "'> \n\n" +
+                       "\n<input type='hidden' name='direccion_establecimiento' value='" + direccion_establecimiento + "'> \n\n" +
+                       "\n<input type='hidden' name='nro_cuit' value='" + nro_cuit + "'> \n\n" +
+                       //"\n<input type='hidden' name='periodo' value='"+periodo+"'> \n\n"+
+                       "<input type='hidden' name='operacion' value='liqui_save'>\n");
+
+               out.println(this.getTable_carga_tributo(id_establecimiento, periodo, id_comercio));
+
+               out.println("\n\n</form><br><br>");
+
+
+               out.println("<table> <tr> <td><a href='/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "&nro_cuit=" + nro_cuit + "'><img src='/ameca/imgs/back.png'></a></td> "
+                       + "<td width='250px'></td>"
+                       + "<td><img src=\"/ameca/imgs/ok_big.png\" onclick=\"document.form_tributo.debito_iva.value=document.form_tributo.base_imponible.value*document.form_tributo.alicuota_iva.value/100; \n"
+                       + "document.form_tributo.credito_iva.value=parseFloat(document.form_tributo.compra_iva.value)*parseFloat(document.form_tributo.alicuota_iva.value)/100; \n"
+                       + "document.form_tributo.saldo_iva.value=parseFloat(document.form_tributo.debito_iva.value)-parseFloat(document.form_tributo.credito_iva.value)-parseFloat(document.form_tributo.percepcion_iva.value); \n"
+                       + "document.form_tributo.debito_iibb.value=document.form_tributo.base_imponible.value*document.form_tributo.alicuota_iibb.value/100; \n"
+                       + "document.form_tributo.saldo_iibb.value=parseFloat(document.form_tributo.debito_iibb.value)-parseFloat(document.form_tributo.percepcion_iibb.value); \n"
+                       + "document.form_tributo.submit();\" onmouseover=\"this.style.cursor='pointer'\"></td>"
+                       + "</tr></table>"
+                       + "<br><br><br><br><br><br>");
+
+               out.println(HTML.getTail());
+
+               break;
+           case "liqui_save": {
+               out.println("<html><head><title>Ameca - Guarda Actividad Impositiva</title>\n\n</head> \n <body>  \n\n  ");
+               String res;
+               if (id_establecimiento_mes.equals("0"))
+                   res = this.insertaLiquiMes(id_establecimiento, periodo, base_imponible, alicuota_iva, alicuota_iibb, compra_iva, percepcion_iva, percepcion_iibb, saldo_iibb, saldo_iva, condicion_iva, condicion_iibb);
+               else
+                   res = this.updateLiquiMes(id_establecimiento_mes, base_imponible, alicuota_iva, alicuota_iibb, compra_iva, percepcion_iva, percepcion_iibb);
+
+
+               if (HTML.isNumber(res))
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "&nro_cuit=" + nro_cuit + "\");} document.body.style.background='green'; \n window.setTimeout(go, 80); \n</script><br>");
+               else
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "&nro_cuit=" + nro_cuit + "\");} \n document.body.style.background='red'; \n window.setTimeout(go, 9000); \n</script><br><br>Query: " + res);
+
+
+               out.println("<br><a href='/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "e&nro_cuit=" + nro_cuit + "'>Volver</a>");
+               out.println("</body>\n\n</html>");
+
+               break;
+           }
+           case "activar":    //activa o desactiva al establecimiento para aparecer en listado IVA / IIBB
+           {
+               out.println("<html><head><title>Ameca - Save Data</title>\n\n</head> \n <body>");
+
+               String res = this.updateEstablecimiento_activar(id_establecimiento, op_activar, valor_activar);
+
+               if (HTML.isNumber(res))
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "\");} document.body.style.background='green'; \n window.setTimeout(go, 70); \n</script><br>");
+               else
+                   out.println("<script>function go() {window.location.replace(\"/ameca/comercios?operacion=detalle&id_comercio=" + id_comercio + "\");} \n document.body.style.background='red'; \n window.setTimeout(go, 9500); \n</script><br><br>Query: " + res);
+               break;
+           }
+           case "notes":     //guarda los datos recibidos del formulario ya completo
+
+               String resul_insert;
+               //long i = 0;
+               if (op2.equals("save")) 
+				  {
+                   resul_insert = this.UpdateObservaciones(id_establecimiento, observaciones, obs_historicas);
+                   if (resul_insert.equals("1"))
+                       out.println("<!DOCTYPE html>\n<html><head><title>Notas</title>\n</head> \n <body><script>function go() {window.close();} document.body.style.background='green'; \n window.setTimeout(go, 100); \n</script>\n OK<br></body></html>");
+                   else
+                       out.println("<!DOCTYPE html>\n<html><head><title>Notas</title>\n</head> \n <body><script>function go() {window.close();} document.body.style.background='red'; \n window.setTimeout(go, 10000); \n</script> <br>ERROR al guardar: " + resul_insert + "</body></html>");
+
+                   //out.println("<html><head><title>Notas - "+nro_cuit+"</title>\n </head> \n <body>ERROR al guardar: "+resul_insert+"</body></html>");
+                   //out.println("<html><head><title>Notas - "+nro_cuit+"</title>\n </head> \n <body>OK CERRAR</body></html>");
+
+				  } 
+			   else 
+				  {
+                   observaciones = CargaObservaciones(id_establecimiento);
+                   obs_historicas = CargaObservaciones_hist(id_establecimiento);
+                   out.println("<html><head><title>Notas - " + nro_cuit + "</title>\n </head> \n <body>  \n\n " +
+                           " Observaciones del Establecimiento: " + nombre_responsable_establecimiento + ", " + direccion_establecimiento + "<br><br>" +
+                           "<form name='f_observaciones' action='/ameca/establecimientos' method='post'> "
+                           + "<input type='hidden' name='id_establecimiento' value='" + id_establecimiento + "'>" +
+                           "<input type='hidden' name='operacion' value='notes'>" +
+                           "<input type='hidden' name='op2' value='save'>" +
+                           "\n<table><tr><td>Novedades:<br><textarea name='observaciones' cols='45' rows='8'>" + observaciones + "</textarea></td>"+
+                           "\n<td width='55'></td><td>Historicas:<br><textarea name='obs_historicas' cols='45' rows='8'>" + obs_historicas + "</textarea></td></tr>"+
+                           "\n</table><br><input type='submit'>\n"
+                           + "</form><br><br></body></html>");
+               }
+
+
+               break;
+       }
 
    
  }
@@ -309,7 +305,8 @@ public class Establecimientos extends HttpServlet
         try 
             {
             con=CX.getCx_pool();
-            pst = con.prepareStatement(query);
+                assert con != null;
+                pst = con.prepareStatement(query);
                                                
             resul_insert = pst.executeUpdate();
             if (resul_insert>0)
@@ -318,15 +315,14 @@ public class Establecimientos extends HttpServlet
                 return "todo mal";
             rs=pst.executeQuery();
             if (rs.next())
-		resul=rs.getString(1);
+		        resul=rs.getString(1);
 
             }
-        catch (SQLException ex) {
-               return "<br><br>ERROR: "+ex.getMessage()+"<br><br>"+query;
+        catch (SQLException | NullPointerException ex) {
+            return "<br><br>ERROR: "+ex.getMessage()+"<br><br>"+query;
             //Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
             //lgr.log(Level.SEVERE, ex.getMessage(), ex);
-            }
-        finally 
+        } finally
             {
             try {
                 if (rs != null) 
@@ -338,7 +334,7 @@ public class Establecimientos extends HttpServlet
                 }
             catch (SQLException ex) {
               // Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
-                return ex.getMessage();
+                resul= ex.getMessage();
                 }
             }
         
@@ -369,7 +365,8 @@ public class Establecimientos extends HttpServlet
         try 
             {
             con=CX.getCx_pool();
-            pst = con.prepareStatement(query);
+                assert con != null;
+                pst = con.prepareStatement(query);
                                                
             resul_insert = pst.executeUpdate();
             if (resul_insert<1)
@@ -377,7 +374,7 @@ public class Establecimientos extends HttpServlet
             else
                 query=Long.toString(resul_insert);
             }
-        catch (SQLException ex) {
+        catch (SQLException | NullPointerException ex) {
                query+= "<br><br>ERROR: "+ex.getMessage()+"<br><br>";
             //Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
             //lgr.log(Level.SEVERE, ex.getMessage(), ex);
@@ -412,7 +409,7 @@ public class Establecimientos extends HttpServlet
         PreparedStatement pst = null;
         //ResultSet rs = null;
         long resul_insert;
-	String resul="";
+	String resul;
 
         try 
             {
@@ -428,8 +425,9 @@ public class Establecimientos extends HttpServlet
             else
                 condicion_iibb="0";  // activo_iibb=1
 
-            
-            pst = con.prepareStatement("INSERT INTO EstablecimientosLiquiMes (id_establecimiento, periodo, base_imponible, alicuota_iva, "
+
+                assert con != null;
+                pst = con.prepareStatement("INSERT INTO EstablecimientosLiquiMes (id_establecimiento, periodo, base_imponible, alicuota_iva, "
                                      + "alicuota_iibb, compra_iva, percepcion_iva, percepcion_iibb, saldo_iibb, saldo_iva, alicuota_pago_facil, "
                                      + "reporte_ameca_comision, activo_iva_periodo, activo_iibb_periodo) "
                                     + " VALUES ("+id_establecimiento+", '"+periodo+"', "+base_imponible+", "+alicuota_iva+", "
@@ -440,7 +438,7 @@ public class Establecimientos extends HttpServlet
             resul = Long.toString(resul_insert);
 
             }
-        catch (SQLException ex) {
+        catch (SQLException  | NullPointerException ex) {
                resul= "<br><br>ERROR: "+ex.getMessage()+"<br><br>";
             //Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
             //lgr.log(Level.SEVERE, ex.getMessage(), ex);
@@ -482,14 +480,15 @@ public class Establecimientos extends HttpServlet
         try 
             {
             con=CX.getCx_pool();
-            pst = con.prepareStatement(resul);
+                assert con != null;
+                pst = con.prepareStatement(resul);
 
                                                
             resul_insert = pst.executeUpdate();
             resul = Long.toString(resul_insert);
 
             }
-        catch (SQLException ex) {
+        catch (SQLException  | NullPointerException ex) {
                resul= "<br><br>ERROR: "+ex.getMessage()+"<br><br>";
             //Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
             //lgr.log(Level.SEVERE, ex.getMessage(), ex);
@@ -535,7 +534,8 @@ public class Establecimientos extends HttpServlet
         try 
             {
             con=CX.getCx_pool();
-            pst = con.prepareStatement(query);
+                assert con != null;
+                pst = con.prepareStatement(query);
                                                
             resul_insert = pst.executeUpdate();
             if (resul_insert<1)
@@ -543,7 +543,7 @@ public class Establecimientos extends HttpServlet
             else
                 query=Long.toString(resul_insert);
             }
-        catch (SQLException ex) {
+        catch (SQLException  | NullPointerException ex) {
                query+= "<br><br>ERROR: "+ex.getMessage()+"<br>"+query+"<br>";
             //Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
             //lgr.log(Level.SEVERE, ex.getMessage(), ex);
@@ -576,13 +576,14 @@ public class Establecimientos extends HttpServlet
 
 	String resul="", saldo_iva="", saldo_iibb="";
         
-            String condicion_iva;
-            String condicion_iibb;        
+            //String condicion_iva;
+            //String condicion_iibb;
         
         try 
             {
             con=CX.getCx_pool();
-            pst = con.prepareStatement( "SELECT em.base_imponible, em.compra_iva, em.percepcion_iva, em.alicuota_iibb, em.percepcion_iibb, "+  // 5
+                assert con != null;
+                pst = con.prepareStatement( "SELECT em.base_imponible, em.compra_iva, em.percepcion_iva, em.alicuota_iibb, em.percepcion_iibb, "+  // 5
                                                                     "em.id_establecimiento_mes, em.saldo_iibb, em.saldo_iva, c.id_condicion_iva, c.id_condicion_iibb " +  // 10
                                                              "FROM Establecimientos e, EstablecimientosLiquiMes em, Comercios c " +
                                                              "WHERE e.id_establecimiento=em.id_establecimiento AND c.id_comercio=e.id_comercio " +
@@ -605,8 +606,8 @@ public class Establecimientos extends HttpServlet
                   saldo_iva=rs.getString(8);
                   saldo_iibb=rs.getString(7);
 
-            condicion_iva=rs.getString(9);
-            condicion_iibb=rs.getString(10);
+            //condicion_iva=rs.getString(9);
+            //condicion_iibb=rs.getString(10);
 
 /*            if (HTML.getActivo_iva(condicion_iva))
                 resul+="<br>condicion_iva="+condicion_iva+",  va activado en el periodo<br>";  // activo_iva=1
@@ -695,61 +696,92 @@ public class Establecimientos extends HttpServlet
 
     
     // Recibe  el id_establecimiento y devuelve las observaciones del establecimiento
-
     private String CargaObservaciones (String id_establecimiento) 
         {
         Connection con = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
 
-        String resul="";
+        String resul;
         
         try 
             {
             con=CX.getCx_pool();
-            pst = con.prepareStatement( "SELECT observaciones " + 
-                                                             "FROM  Establecimientos " +
-                                                             "WHERE id_establecimiento="+id_establecimiento);
+			assert con != null;
+			pst = con.prepareStatement( "SELECT observaciones " +
+										"FROM  Establecimientos " +
+										"WHERE id_establecimiento="+id_establecimiento);
             rs = pst.executeQuery();
             if (rs.next())
                 resul= rs.getString(1) != null ?  rs.getString(1) : "" ;
             else
-                   resul="ko";
-            
+                resul="ko";
             }
-        catch (SQLException ex) {
-               resul= "<br><br>ERROR: "+ex.getMessage()+"<br><br>";
-            //Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
-            //lgr.log(Level.SEVERE, ex.getMessage(), ex);
-            }
+        catch (SQLException ex) {   resul= "<br><br>ERROR: "+ex.getMessage()+"<br><br>";     }
         finally 
             {
             try {
-                if (rs != null) 
+                if (rs != null)
                   rs.close();
                 if (pst != null)
                   pst.close();
-                if (con != null) 
+                if (con != null)
                   con.close();
                 }
-            catch (SQLException ex) {
-              // Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
-                resul= ex.getMessage();
-                }
+            catch (SQLException ex) {    resul= ex.getMessage();    }
             }
         
         return resul;
         }    
     
+    // Recibe  el id_establecimiento y devuelve las observaciones del establecimiento
+    private String CargaObservaciones_hist (String id_establecimiento) 
+        {
+        Connection con = null;
+        PreparedStatement pst = null;
+        ResultSet rs = null;
+
+        String resul;
+        
+        try 
+            {
+            con=CX.getCx_pool();
+			assert con != null;
+			pst = con.prepareStatement( "SELECT observaciones_historicas " +
+										"FROM  Establecimientos " +
+										"WHERE id_establecimiento="+id_establecimiento);
+            rs = pst.executeQuery();
+            if (rs.next())
+                resul= rs.getString(1) != null ?  rs.getString(1) : "" ;
+            else
+                resul="ko";
+            }
+        catch (SQLException ex) {   resul= "<br><br>ERROR: "+ex.getMessage()+"<br><br>";     }
+        finally 
+            {
+            try {
+                if (rs != null)
+                  rs.close();
+                if (pst != null)
+                  pst.close();
+                if (con != null)
+                  con.close();
+                }
+            catch (SQLException ex) {    resul= ex.getMessage();    }
+            }
+        
+        return resul;
+        }    
                     
     
     
      // guarda las observaciones de un establecimiento realizado desde liquidaciones 
+     // las observacioen son lo que llaman novedades y se imprimen en los reportes; ahora se agrega un nuevo campo a los Establecimientos: observaciones_historicas.
     private String UpdateObservaciones (String id_establecimiento, String observaciones) 
 	{
         Connection con = null;
         PreparedStatement pst = null;
-        long resul_insert=0;
+        long resul_insert;
         String query;
         
             query="UPDATE Establecimientos e  " +
@@ -758,16 +790,13 @@ public class Establecimientos extends HttpServlet
         
         try 
             {
-            con=CX.getCx_pool();
-            pst = con.prepareStatement(query);
-            resul_insert = pst.executeUpdate();
-            query=Long.toString(resul_insert);
+             con=CX.getCx_pool();
+             assert con != null;
+             pst = con.prepareStatement(query);
+             resul_insert = pst.executeUpdate();
+             query=Long.toString(resul_insert);
             }
-        catch (SQLException ex) {
-               query+= "<br><br>ERROR: "+ex.getMessage()+"<br>"+query+"<br>";
-            //Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
-            //lgr.log(Level.SEVERE, ex.getMessage(), ex);
-            }
+        catch (SQLException ex) {    query+= "<br><br>ERROR: "+ex.getMessage()+"<br>"+query+"<br>";    }
         finally 
             {
             try {
@@ -776,23 +805,47 @@ public class Establecimientos extends HttpServlet
                 if (con != null) 
                   con.close();
                 }
-            catch (SQLException ex) {
-              // Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
-                query+= "<br><br>ERROR: "+ex.getMessage()+"<br>"+query+"<br>";
-                }
+            catch (SQLException ex) {  query+= "<br><br>ERROR: "+ex.getMessage()+"<br>"+query+"<br>";   }
             }
         
         return query;
         }
     
 
+     // guarda las observaciones de un establecimiento realizado desde liquidaciones 
+     // las observacioen son lo que llaman novedades y se imprimen en los reportes; ahora se agrega un nuevo campo a los Establecimientos: observaciones_historicas.
+    private String UpdateObservaciones (String id_establecimiento, String observaciones, String historicas) 
+	{
+        Connection con = null;
+        PreparedStatement pst = null;
+        long resul_insert;
+        String query;
+        
+            query="UPDATE Establecimientos e  " +
+                  " SET observaciones='"+observaciones+"', observaciones_historicas='"+historicas+"' "+
+                  " WHERE id_establecimiento="+id_establecimiento;
+        
+        try 
+            {
+             con=CX.getCx_pool();
+             assert con != null;
+             pst = con.prepareStatement(query);
+             resul_insert = pst.executeUpdate();
+             query=Long.toString(resul_insert);
+            }
+        catch (SQLException ex) {    query+= "<br><br>ERROR: "+ex.getMessage()+"<br>"+query+"<br>";    }
+        finally 
+            {
+            try {
+                if (pst != null)
+                  pst.close();
+                if (con != null) 
+                  con.close();
+                }
+            catch (SQLException ex) {  query+= "<br><br>ERROR: "+ex.getMessage()+"<br>"+query+"<br>";   }
+            }
+        
+        return query;
+        }
 
-    
-
-    
-    
-    
-    
-    
-    
 }

@@ -1,6 +1,6 @@
 package ameca; 
  
-import com.mysql.cj.util.StringUtils;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,8 +14,6 @@ import java.util.Locale;
 //import java.text.SimpleDateFormat;  
 import java.util.Date;  
 import java.util.Calendar;  
-
-
 /**
  *
  * @author manu
@@ -24,6 +22,7 @@ public  class HTML {
     
 
 public static final String dbase="dbAmeca";
+public static final String folder="/var/lib/tomcat9/webapps/ameca";
 
 private static final DecimalFormat newFormat = new DecimalFormat("#.##");
 private static final DecimalFormat imprime = new DecimalFormat("#,###.##", DecimalFormatSymbols.getInstance(Locale.ITALIAN));
@@ -38,7 +37,7 @@ private static Boolean ignited_categorias_autonomo=false;
 private static Boolean ignited_categorias_monotributo=false;
 private static Boolean ignited_periodo=false;
 
-private static Boolean ignited_parametros=false;  // tabla de parametros.
+private static Boolean ignited_parametros=false;  // tabla de parametros
   
 private static final int cod_localidad_caba=1;
 private static final int cod_prov_caba=25;
@@ -80,8 +79,8 @@ private static Date date ;
 private static String strDate ;
 
 
-private static String[][] categs_autonomo= new String [15][6] ;     //11.
-private static Double[] montos_autonomo= new Double [15];     //11.
+private static String[][] categs_autonomo= new String [15][6];   //11
+private static Double[] montos_autonomo= new Double [15];   //11
 private static String form_categorias_autonomo;
 private static int long_autonomos=11;  // longitud del vector
 
@@ -258,10 +257,11 @@ public String getTrunc_string  (Double nro)
 
 public String getPWD_day  ()    
 {    
-    date = Calendar.getInstance().getTime();  
+    //date = Calendar.getInstance().getTime();
    // strDate=date.toString();
-   
-    return Integer.toHexString(date.getDay()*28*date.getMonth()+date.getDay()*93 +date.getYear()*date.getMonth());
+   //return Integer.toHe//xString(date.getDay()*28*date.getMonth()+date.getDay()*93 +date.getYear()*date.getMonth());
+    Calendar cal = Calendar.getInstance();
+    return Integer.toHexString(cal.get(Calendar.DAY_OF_MONTH)*28* cal.get(Calendar.MONTH)+ cal.get(Calendar.DAY_OF_MONTH)*93 + cal.get(Calendar.YEAR)* cal.get(Calendar.MONTH));
 }
 
 
@@ -290,6 +290,7 @@ public static String getDropLocalidades()
 
 public static void Carga_localidades() 
     {
+
     Connection con = null;
     PreparedStatement pst = null;
     ResultSet rs = null;
@@ -300,7 +301,7 @@ public static void Carga_localidades()
         pst = con.prepareStatement( "SELECT id_localidad, nombre_localidad FROM Localidades WHERE id_provincia=25 OR id_provincia=2 ORDER BY 1");
         rs = pst.executeQuery();
         while (rs.next())
-            {  localidades[Integer.valueOf(rs.getString(1))]=rs.getString(2); 
+            {  localidades[Integer.parseInt(rs.getString(1))]=rs.getString(2);
                form_localidades+="<option value='"+rs.getString(1)+"'>"+rs.getString(2)+"</option>";
                }
         form_localidades+="</select>";
@@ -327,8 +328,7 @@ public static void Carga_localidades()
             }
         }
         
-
-   }   
+   }
 
 
 
@@ -365,13 +365,16 @@ public static void Carga_zonas()
     PreparedStatement pst = null;
     ResultSet rs = null;
     form_zonas="<select name='id_zona'> <option value=''>Seleccionar</option> ";
+
+
+
     try 
         {
         con=CX.getCx_pool();
-        pst = con.prepareStatement( "SELECT * FROM Zonas");
+        pst = con.prepareStatement( "SELECT * FROM Zonas ");
         rs = pst.executeQuery();
         while (rs.next())
-            {  zonas[Integer.valueOf(rs.getString(1))]=rs.getString(2); 
+            {  zonas[Integer.parseInt(rs.getString(1))]=rs.getString(2);
                form_zonas+="<option value='"+rs.getString(1)+"'>"+rs.getString(2)+"</option>";
                }
         form_zonas+="</select>";
@@ -397,7 +400,7 @@ public static void Carga_zonas()
             //resul= ex.getMessage();
             }
         }
-        
+
 
         }   
 
@@ -435,7 +438,7 @@ public static String getDropActividades()
             pst = con.prepareStatement( "SELECT * FROM Actividades");
             rs = pst.executeQuery();
             while (rs.next())
-                {  actividades[Integer.valueOf(rs.getString(1))]=rs.getString(2); 
+                {  actividades[Integer.parseInt(rs.getString(1))]=rs.getString(2);
                    form_actividades+="<option value='"+rs.getString(1)+"'>"+rs.getString(2)+"</option>";
                    }
             form_actividades+="</select>";
@@ -479,7 +482,7 @@ public static void setIgnited_condiciones_iibb (Boolean state)
 public static String getCondicionIIBB(String id_cond_iibb)
     { 
 
-        if (StringUtils.isStrictlyNumeric(id_cond_iibb))
+        if (isNumber(id_cond_iibb))
             return condiciones_iibb [Integer.parseInt(id_cond_iibb)];
             
         return ""; 
@@ -511,7 +514,7 @@ public static void Carga_condiciones_iibb ()
         pst = con.prepareStatement( "SELECT * FROM CondicionesIIBB");
         rs = pst.executeQuery();
         while (rs.next())
-            {  condiciones_iibb[Integer.valueOf(rs.getString(1))]=rs.getString(2); 
+            {  condiciones_iibb[Integer.parseInt(rs.getString(1))]=rs.getString(2);
                form_condiciones_iibb+="<option value='"+rs.getString(1)+"'>"+rs.getString(2)+"</option>";
                }
         form_condiciones_iibb+="</select>";
@@ -543,18 +546,22 @@ public static void Carga_condiciones_iibb ()
 
 public static Boolean getActivo_iibb(String condicion_iibb)   // not in (2, 4, 5)
     {   
-     if (StringUtils.isStrictlyNumeric(condicion_iibb) && (condicion_iibb.equals("1") || condicion_iibb.equals("3") || condicion_iibb.equals("7")))
+     if (isNumber(condicion_iibb) && (condicion_iibb.equals("1") || condicion_iibb.equals("3") || condicion_iibb.equals("7")))
          return true;
      else
          return false;
     }
 
 public static Boolean getActivo_iibb(int condicion)   // not in (2, 4, 5)
-    {   
-     if (condicion==1 || condicion==3 || condicion==7 )
-         return true;
-     else
-         return false;
+    {
+        switch (condicion) {
+            case 1:
+            case 3:
+            case 7:
+                return true;
+            default:
+                return false;
+        }
     }
 
 
@@ -594,7 +601,7 @@ public static void setIgnited_condiciones_iva (Boolean state)
 public static String getCondicionIVA(String id_cond_iva)
     { 
 
-        if (StringUtils.isStrictlyNumeric(id_cond_iva))
+        if (isNumber(id_cond_iva))
             return condiciones_iva [Integer.parseInt(id_cond_iva)];
             
         return ""; 
@@ -626,7 +633,7 @@ public static void Carga_condiciones_iva ()
         pst = con.prepareStatement( "SELECT * FROM CondicionesIVA");
         rs = pst.executeQuery();
         while (rs.next())
-            {  condiciones_iva[Integer.valueOf(rs.getString(1))]=rs.getString(2); 
+            {  condiciones_iva[Integer.parseInt(rs.getString(1))]=rs.getString(2);
                form_condiciones_iva+="<option value='"+rs.getString(1)+"'>"+rs.getString(2)+"</option>";
                }
         form_condiciones_iva+="</select>";
@@ -657,7 +664,7 @@ public static void Carga_condiciones_iva ()
 
 public static Boolean getActivo_iva(String condicion_iva)    // solo resp. inscripto
     {   
-     if (StringUtils.isStrictlyNumeric(condicion_iva) && condicion_iva.equals("2") )
+     if (isNumber(condicion_iva) && condicion_iva.equals("2") )
          return true;
      else
          return false;
@@ -787,10 +794,10 @@ public void setPeriodo_nostatic(String period)
 
 public String getPeriodo_prox(String p_periodo)
     { 
-    int yy=Integer.valueOf(p_periodo.substring(0, 4));
-    int mm=Integer.valueOf(p_periodo.substring(4));
+    int yy=Integer.parseInt(p_periodo.substring(0, 4));
+    int mm=Integer.parseInt(p_periodo.substring(4));
     if (mm==12 )
-        return Integer.toString(++yy)+"01";
+        return ++yy +"01";
     else
          p_periodo=++mm< 10 ? "0"+Integer.toString(mm) : Integer.toString(mm);
       
@@ -799,8 +806,8 @@ public String getPeriodo_prox(String p_periodo)
 
 public String getPeriodo_pre (String p_periodo)
     { 
-    int yy=Integer.valueOf(p_periodo.substring(0, 4));
-    int mm=Integer.valueOf(p_periodo.substring(4));
+    int yy=Integer.parseInt(p_periodo.substring(0, 4));
+    int mm=Integer.parseInt(p_periodo.substring(4));
     if (mm==1 )
         return Integer.toString(--yy)+"12";
     else
@@ -920,13 +927,13 @@ public static void Carga_categorias_autonomo ()
         rs = pst.executeQuery();
         while (rs.next())
             {
-             categs_autonomo [Integer.valueOf(rs.getString(1))][0]=rs.getString(2); 
-             categs_autonomo [Integer.valueOf(rs.getString(1))][1]=rs.getString(3); 
-             categs_autonomo [Integer.valueOf(rs.getString(1))][2]=rs.getString(4); 
-             categs_autonomo [Integer.valueOf(rs.getString(1))][3]=rs.getString(5); 
-             categs_autonomo [Integer.valueOf(rs.getString(1))][4]=rs.getString(6); 
+             categs_autonomo [Integer.parseInt(rs.getString(1))][0]=rs.getString(2);
+             categs_autonomo [Integer.parseInt(rs.getString(1))][1]=rs.getString(3);
+             categs_autonomo [Integer.parseInt(rs.getString(1))][2]=rs.getString(4);
+             categs_autonomo [Integer.parseInt(rs.getString(1))][3]=rs.getString(5);
+             categs_autonomo [Integer.parseInt(rs.getString(1))][4]=rs.getString(6);
              
-             montos_autonomo[Integer.valueOf(rs.getString(1))]=rs.getDouble(7);
+             montos_autonomo[Integer.parseInt(rs.getString(1))]=rs.getDouble(7);
              i++; 
              form_categorias_autonomo+="<option value='"+rs.getString(1)+"'>"+rs.getString(2)+", "+rs.getString(3)+", "+rs.getString(4)+"</option>";
                }
@@ -1014,7 +1021,7 @@ public static void Carga_categorias_monotributo ()
     Connection con = null;
     PreparedStatement pst = null;
     ResultSet rs = null;
-    int i=1, k=0;
+    int i=1, k;
     form_categorias_monotributo="<select name='categ_monotributo'> <option value='0'>Seleccionar</option>";
     try 
         {
@@ -1023,7 +1030,8 @@ public static void Carga_categorias_monotributo ()
         rs = pst.executeQuery();
         while (rs.next())
             {
-             k=Integer.valueOf(rs.getString(1));
+
+             k=Integer.parseInt(rs.getString(1));
              categs_monotributo [k][0]=rs.getString(2); 
              categs_monotributo [k][1]=rs.getString(3); 
              categs_monotributo [k][2]=rs.getString(4); 
@@ -1199,9 +1207,9 @@ public static void cargaParametros ()
              alicuota_prn_iibb_caba=rs.getString(2);
              prn_iva=rs.getString(3);
              
-             alicuota_iva=Float.valueOf(prn_iva)/100;
-             alicuota_iibb_ba=Float.valueOf(alicuota_prn_iibb_ba)/100;
-             alicuota_iibb_caba=Float.valueOf(alicuota_prn_iibb_caba)/100;
+             alicuota_iva=Float.parseFloat(prn_iva)/100;
+             alicuota_iibb_ba=Float.parseFloat(alicuota_prn_iibb_ba)/100;
+             alicuota_iibb_caba=Float.parseFloat(alicuota_prn_iibb_caba)/100;
 
             
             }
@@ -1272,11 +1280,11 @@ public String getTotalReporte_calculo(String subtotal, String saldo, String comi
         return Float.toString (Float.parseFloat(saldo) + Float.parseFloat(subtotal) + Float.parseFloat(comision));
     }
 
-public static String isNumber(String nro)
+public static boolean isNumber(String nro)
     {  
         if (nro == null || !nro.matches("-?\\d+(\\.\\d+)?"))
-            return "ko";
-        return "number_ok";
+            return false;
+        return true;
     }
 
 

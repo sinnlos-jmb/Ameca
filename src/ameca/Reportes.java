@@ -1,14 +1,12 @@
 package ameca;
 
-
-/**
+/*
  *
  * @author manu
  */
 
 import java.io.PrintWriter;
-import java.net.URLEncoder;
-
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,10 +14,14 @@ import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 // PDF
+
+import java.net.URLEncoder;
+
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -48,10 +50,6 @@ import java.io.File;
 
 
 
-
-
-
-
 // Excel
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -67,38 +65,18 @@ import java.util.Random;
 
 
 
-//import manu.utils.*;
 
 public class Reportes extends HttpServlet
 {  
+	
+	HTML htm=new HTML();
+    
+    private static final String FILE = HTML.folder+"/Reportes/";
+   // public static final String IMG = HTML.folder+"/imgs/ok_big.png";
+    public static final String IMG_logo = HTML.folder+"/imgs/ameca1_ok.png";  
+    public static final String IMG_pf = HTML.folder+"/imgs/pagofacilOK2.png";  
+    
 
-    HTML htm=new HTML();
-    
-    private static final String FILE = "/usr/share/tomcat8-ameca/ameca/Reportes/";
-    public static final String IMG = "/usr/share/tomcat8-ameca/ameca/imgs/ok_big.png"; 
-    public static final String IMG_logo = "/usr/share/tomcat8-ameca/ameca/imgs/ameca1_ok.png";  
-    public static final String IMG_pf = "/usr/share/tomcat8-ameca/ameca/imgs/pagofacilOK2.png";  
-    
-    private static final Font catFont = new Font(Font.FontFamily.TIMES_ROMAN, 18, Font.BOLD);
-    private static final Font redFont = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.NORMAL, BaseColor.RED);
-    private static final Font subFont = new Font(Font.FontFamily.TIMES_ROMAN, 16, Font.BOLD);
-    private static final Font smallBold = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.BOLD);
-    private static final Font small = new Font(Font.FontFamily.TIMES_ROMAN, 10, Font.NORMAL);
-    //private static final Font chino = new Font(Font.FontFamily.UNDEFINED, 12, Font.BOLD);
-//        BaseFont bfComic = BaseFont.createFont("C:\\Windows\\Fonts\\arialuni.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
- //       private static final Font chino =new Font ("/usr/share/tomcat8-ameca/ameca/Styles/ARIALUNI.TTF", 12, BaseFont.EMBEDDED);
-    
- //   DefaultFontMapper mapper = new com.itextpdf.awt.AsianFontMapper(
-   //        AsianFontMapper.ChineseTraditionalFont_MSung,
-   //        AsianFontMapper.ChineseTraditionalEncoding_H ); 
-    
-    private static BaseFont bfComic ;
-    private static Font chino;
-    private static Font chino_tit;
-    private static Font chino_b;
-    private static Font chino_s;
-    private static Font chino_ss;
-    
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
 	  throws ServletException, IOException
@@ -109,6 +87,11 @@ public class Reportes extends HttpServlet
       throws ServletException, IOException
 
    {  //    htmls.logger.fine("homeOsoc. Carga servlet\n--");
+	   
+	   
+	HttpSession session = request.getSession(false)!= null ? request.getSession(false): request.getSession();
+	String user_level  = session.getAttribute("user_level") != null ?  (String)session.getAttribute("user_level") : "0" ;
+	String user_name  = session.getAttribute("user_name") != null ?  (String)session.getAttribute("user_name") : "" ;   
    
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -165,7 +148,7 @@ public class Reportes extends HttpServlet
     String reporte_esp  = request.getParameter ("reporte_esp") != null ?  request.getParameter ("reporte_esp") : "0" ;
     String reporte_suss  = request.getParameter ("reporte_suss") != null ?  request.getParameter ("reporte_suss") : "0" ;
 
-    String base_imponible  = request.getParameter ("base_imponible") != null ?  request.getParameter ("base_imponible") : "0" ;
+    //String base_imponible  = request.getParameter ("base_imponible") != null ?  request.getParameter ("base_imponible") : "0" ;
     String reporte_higiene  = request.getParameter ("reporte_higiene") != null ?  request.getParameter ("reporte_higiene") : "0" ;
 
     String reporte_observacion  = request.getParameter ("reporte_observacion") != null ?  request.getParameter ("reporte_observacion") : "" ;
@@ -173,9 +156,20 @@ public class Reportes extends HttpServlet
     String ref = request.getParameter ("ref") != null ?  request.getParameter ("ref") : "" ; // recibe iva o iibb para saber a que' pag volver.
 
 
- switch (operacion)
- {
-  case "find": 
+ 	if (user_level.equals("0"))
+	{
+     out.println("<!DOCTYPE html><html><head><title>Ameca - Password</title>\n </head> \n <body>  \n\n <br><br> \n");
+	 out.println("<script>"
+		+   "function go() { window.document.location.replace(\"/ameca/inicio\"); \n ;} \n "
+		+   "document.body.style.background='brown'; \n window.setTimeout(go, 10); \n"  // acá habría que poner cartel de logueo
+		+ "</script><br>Ingrese al sistema!<br>"
+		+ "</body></html>");
+	}
+	else
+	{
+	switch (operacion)
+	{
+	case "find": 
         out.println(HTML.getHead("reportes", htm.getPeriodo_nostatic()));
         out.println("<br><br>\n<h2>Ver Reportes</h2>"+
                     "\n<form action='/ameca/reportes' method='post'>\n\t" +
@@ -322,7 +316,7 @@ case "bk_establecimientos":    //   crea una planilla con todos los comercios y 
 
 case "bk_reportes":    //   crea una planilla con todos los comercios y sus establecimientos
         
-        String result="";
+        String result;
         out.println(HTML.getHead("reportes", htm.getPeriodo_nostatic()));
         out.println("<br><br>\n<h2>Ver Historial Reportes</h2> <br><br>"+
                     "\n<form action='/ameca/reportes' method='post'>\n\t"+
@@ -360,12 +354,10 @@ case "bk_reportes":    //   crea una planilla con todos los comercios y sus esta
         out.println(HTML.getTail());
 
         break;
-            
-           
-default: out.println("<html><body>No operacion</body></html>"); 
-
-   
-        }
+        
+	default: out.println("<html><body>No operacion</body></html>"); 
+    }  // fin del switch
+  }  // fin del else (user_level no es 0)
    
  }
 
@@ -397,7 +389,7 @@ default: out.println("<html><body>No operacion</body></html>");
               pst = con.prepareStatement(query);
                                                
               resul_insert = pst.executeUpdate();
-              Integer.toString(resul_insert);
+              res=Integer.toString(resul_insert);
             }
         catch (SQLException ex) {
              res+="<br><br>ERROR: "+ex.getMessage()+"<br><br>"+query;
@@ -432,18 +424,17 @@ private String TablaFindComercios (String nro_cuit, String calle_comercio, Strin
         PreparedStatement pst = null;
         ResultSet rs = null;
         
-    String  query="", resul="\n\n<table class='bicolor' align='center'><tr><th>CUIT</th><th>Razon Social</th><th>Responsable</th><th>Direccion Establecimiento</th><th></th></tr>\n";
+    String  query, resul="\n\n<table class='bicolor' align='center'><tr><th>CUIT</th><th>Razon Social</th><th>Responsable</th><th>Direccion Establecimiento</th><th></th></tr>\n";
         if (nro_cuit.equals("--") && calle_comercio.equals(""))
                 return "";
         else if (!nro_cuit.equals("--") && calle_comercio.equals(""))
                 query= "SELECT e.id_establecimiento, razon_social, c.nombre_responsable, c.nro_cuit, direccion_establecimiento "+
                                        "FROM Comercios c, Establecimientos e WHERE c.id_comercio=e.id_comercio  AND  c.nro_cuit like '"+nro_cuit+"%' ";
-        else if (nro_cuit.equals("--") && !calle_comercio.equals(""))
+        else if (nro_cuit.equals("--"))
                 query= "SELECT id_establecimiento, razon_social, c.nombre_responsable, c.nro_cuit, direccion_establecimiento "+
                                        "FROM Comercios c, Establecimientos e WHERE c.id_comercio=e.id_comercio AND direccion_establecimiento like '%"+calle_comercio+"%' " ;
-        else if (!nro_cuit.equals("--") && !calle_comercio.equals(""))
-                query= "SELECT id_establecimiento, razon_social, c.nombre_responsable, c.nro_cuit, e.direccion_establecimiento "+
-                                       "FROM Comercios c, Establecimientos e WHERE c.id_comercio=e.id_comercio  AND c.nro_cuit like '"+nro_cuit+"%' AND direccion_establecimiento like '%"+calle_comercio+"%' ";
+        else query= "SELECT id_establecimiento, razon_social, c.nombre_responsable, c.nro_cuit, e.direccion_establecimiento "+
+                               "FROM Comercios c, Establecimientos e WHERE c.id_comercio=e.id_comercio  AND c.nro_cuit like '"+nro_cuit+"%' AND direccion_establecimiento like '%"+calle_comercio+"%' ";
         
         try 
             {
@@ -455,7 +446,7 @@ private String TablaFindComercios (String nro_cuit, String calle_comercio, Strin
                 if(op.equals("edit")) 
                         resul+="<tr><td>"+rs.getString(4)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3) +"</td><td>"+rs.getString(5) +"</td><td><a href='/ameca/reportes?operacion=edit&id_establecimiento="+rs.getString(1)+"&periodo="+htm.getPeriodo_nostatic()+"&calle_comercio="+calle_comercio+"&cuit_comercio="+nro_cuit+"'>Editar Reporte</a></td></tr>\n";
                 else
-                        resul+="<tr><td>"+rs.getString(4)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3) +"</td><td>"+rs.getString(5) +"</td><td><a href='/ameca/reportes?operacion=bk_reportes&id_establecimiento="+rs.getString(1)+"&periodo="+htm.getPeriodo_year()+"&direccion_establecimiento="+URLEncoder.encode(rs.getString(5))+"&nro_cuit="+rs.getString(4)+"&nombre_responsable="+URLEncoder.encode(rs.getString(3))+"'>Ver Reporte</a></td></tr>\n";
+                        resul+="<tr><td>"+rs.getString(4)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getString(3) +"</td><td>"+rs.getString(5) +"</td><td><a href='/ameca/reportes?operacion=bk_reportes&id_establecimiento="+rs.getString(1)+"&periodo="+htm.getPeriodo_year()+"&direccion_establecimiento="+URLEncoder.encode(rs.getString(5), StandardCharsets.UTF_8)+"&nro_cuit="+rs.getString(4)+"&nombre_responsable="+URLEncoder.encode(rs.getString(3), StandardCharsets.UTF_8)+"'>Ver Reporte</a></td></tr>\n";
                     
             resul+="</table>";
             }
@@ -494,7 +485,7 @@ private String TablaHistComercios (String id_establecimiento, String periodo, St
         String periodo2=periodo;
         if (periodo.length()>4)
             periodo2=periodo.substring(0, 4);
-        String  query="", resul="\n\n<table class='bicolor' align='center'><tr><th>Periodo</th><th>Monto Autonomo</th><th width='166px'>Saldo IVA</th><th>Saldo IVA reporte</th><th width='166px'>Saldo IIBB</th><th>Saldo IIBB reporte</th> <th>F. 931 SUSS </th> <th>Seguridad e Higiene </th> <th></th></tr>\n";
+        String  query, resul="\n\n<table class='bicolor' align='center'><tr><th>Periodo</th><th>Monto Autonomo</th><th width='166px'>Saldo IVA</th><th>Saldo IVA reporte</th><th width='166px'>Saldo IIBB</th><th>Saldo IIBB reporte</th> <th>F. 931 SUSS </th> <th>Seguridad e Higiene </th> <th></th></tr>\n";
 
 //        query= "SELECT periodo, base_imponible, saldo_iva, saldo_iva_reporte, saldo_iibb, saldo_iibb_reporte, reporte_suss, reporte_higiene  "+
   //                   "FROM EstablecimientosLiquiMes  " +
@@ -513,7 +504,7 @@ private String TablaHistComercios (String id_establecimiento, String periodo, St
 
             while (rs.next())     // formato aleman de doubles
                 resul+="<tr><td>"+rs.getString(1)+"</td><td> $ "+htm.getMontoAutonomo(rs.getInt(2))+"</td><td> $ "+String.format(Locale.GERMAN, "%,.2f", rs.getDouble(3)) +"</td><td>"+rs.getString(4) +"</td><td> $ "+String.format(Locale.GERMAN, "%,.2f", rs.getDouble(5)) +"</td> <td> "+rs.getString(6) +" </td><td>  "+String.format(Locale.GERMAN, "%,.2f", rs.getDouble(7)) +"</td> <td>  "+String.format(Locale.GERMAN, "%,.2f", rs.getDouble(8)) +" </td> "
-                        + "<td><a href='/ameca/reportes?operacion=bk_reportes&op2=xls&id_establecimiento="+id_establecimiento+"&periodo="+rs.getString(1)+"&direccion_establecimiento="+URLEncoder.encode(direccion_establecimiento)+"&nro_cuit="+nro_cuit+"&nombre_responsable="+URLEncoder.encode(nombre_responsable)+"&autonomo="+htm.getMontoAutonomo(rs.getInt(2))+"&saldo_iva="+rs.getString(3)+"&saldo_iva_reporte="+rs.getString(4)+"&saldo_iibb="+rs.getString(5)+"&saldo_iibb_reporte="+rs.getString(6)+"&reporte_suss="+rs.getDouble(7)+"&reporte_higiene="+rs.getDouble(8)+"'><img src=\"/ameca/imgs/msexcel_32.png\" style=\"width:32px;height:32px;\"  onmouseover=\"this.style.cursor='pointer'\"></a></td> </tr>\n";
+                        + "<td><a href='/ameca/reportes?operacion=bk_reportes&op2=xls&id_establecimiento="+id_establecimiento+"&periodo="+rs.getString(1)+"&direccion_establecimiento="+URLEncoder.encode(direccion_establecimiento, StandardCharsets.UTF_8)+"&nro_cuit="+nro_cuit+"&nombre_responsable="+URLEncoder.encode(nombre_responsable, StandardCharsets.UTF_8)+"&autonomo="+htm.getMontoAutonomo(rs.getInt(2))+"&saldo_iva="+rs.getString(3)+"&saldo_iva_reporte="+rs.getString(4)+"&saldo_iibb="+rs.getString(5)+"&saldo_iibb_reporte="+rs.getString(6)+"&reporte_suss="+rs.getDouble(7)+"&reporte_higiene="+rs.getDouble(8)+"'><img src=\"/ameca/imgs/msexcel_32.png\" style=\"width:32px;height:32px;\"  onmouseover=\"this.style.cursor='pointer'\"></a></td> </tr>\n";
 
             resul+="</table>";
             }
@@ -551,12 +542,11 @@ private String getReporte (String id_establecimiento, String periodo)
         PreparedStatement pst = null;
         ResultSet rs = null;
         
-   int cond_iva=0, cond_iibb=0, categ_autonomo=0, categ_monotributo=0, check_autonomo=0, check_monotributo=0, 
-           id_zona=0, id_localidad=0, id_comercio=0;
-   Double comision_pago_facil=0d, alicuota_pago_facil=0d, saldo_pago_facil=0d, saldo_iva=0d, saldo_iibb=0d, saldo_iva_reporte=0d, 
-           saldo_iibb_reporte=0d, reporte_gan=0d, reporte_esp=0d, reporte_suss=0d, total_vep=0d, total=0d, subtotal2=0d, vepmasiva=0d, reporte_higiene=0d;   
+   int categ_autonomo=0, categ_monotributo=0, check_autonomo=0, check_monotributo=0, id_localidad=0, id_comercio=0;
+   double comision_pago_facil=0d, alicuota_pago_facil=0d, saldo_pago_facil=0d, saldo_iva=0d, saldo_iibb=0d, saldo_iva_reporte=0d,
+           saldo_iibb_reporte=0d, reporte_gan=0d, reporte_esp=0d, reporte_suss=0d, total_vep=0d, total=0d, subtotal2=0d, reporte_higiene=0d;
    
-   String  resul="", alicuota_pago_facil_prn="", nro_pago_facil="", nombre_responsable="", nro_cuit="", direccion_establecimiento="", reporte_observacion="";
+   String  resul, alicuota_pago_facil_prn="", nro_pago_facil="", nombre_responsable="", nro_cuit="", direccion_establecimiento="", reporte_observacion="";
    String period="";   // para ver si trajo un establecimiento sin base cargada (ie period==null is true)
     
    String query="SELECT  c.id_categ_monotributo, c.id_categ_autonomo, c.id_condicion_iibb, c.id_condicion_iva, "+  //4
@@ -580,8 +570,8 @@ private String getReporte (String id_establecimiento, String periodo)
                  check_autonomo=rs.getInt(23);
                  check_monotributo=rs.getInt(24);
                  
-                 cond_iibb=rs.getInt(3);
-                 cond_iva=rs.getInt(4);
+                 //cond_iibb=rs.getInt(3);
+                 //cond_iva=rs.getInt(4);
                  comision_pago_facil=rs.getDouble(18);
 
                  nro_cuit=rs.getString(5);
@@ -594,10 +584,10 @@ private String getReporte (String id_establecimiento, String periodo)
                  period=rs.getString(17)!= null ?  rs.getString(17): "-" ;
 
                  if (period.length()<5)
-                     return resul="<br><br><br>\nEl establecimiento: "+direccion_establecimiento+", CUIT: "+nro_cuit+" no tuvo actividad para el periodo "+periodo+".<br> <a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'>Cargar Base</a><br><br><br><br><br><br><br>";
+                     return "<br><br><br>\nEl establecimiento: "+direccion_establecimiento+", CUIT: "+nro_cuit+" no tuvo actividad para el periodo "+periodo+".<br> <a href='/ameca/comercios?operacion=detalle&id_comercio="+id_comercio+"&nro_cuit="+nro_cuit+"'>Cargar Base</a><br><br><br><br><br><br><br>";
 
 
-                 id_zona=rs.getInt(8);
+                 //id_zona=rs.getInt(8);
                  id_localidad=rs.getInt(16);
 
                  alicuota_pago_facil=rs.getDouble(10);
@@ -636,9 +626,9 @@ private String getReporte (String id_establecimiento, String periodo)
         resul="\n<br><table border='0'><tr><td>Titular: "+nombre_responsable+"</td><td width='111'></td><td>"+
                        "<a href='/ameca/reportes?operacion=pdf"+
                        "&id_establecimiento="+id_establecimiento+
-                       "&nombre_responsable="+URLEncoder.encode(nombre_responsable)+
+                       "&nombre_responsable="+URLEncoder.encode(nombre_responsable, StandardCharsets.UTF_8)+
                        "&nro_cuit="+nro_cuit+
-                       "&direccion_establecimiento="+URLEncoder.encode(direccion_establecimiento)+
+                       "&direccion_establecimiento="+URLEncoder.encode(direccion_establecimiento, StandardCharsets.UTF_8)+
                        "&nom_localidad="+htm.getLocalidad(id_localidad)+
                        "&nom_provincia="+htm.getProvincia_localidad(id_localidad)+
                        "&nro_pago_facil="+nro_pago_facil+
@@ -656,7 +646,7 @@ private String getReporte (String id_establecimiento, String periodo)
                        "&reporte_gan="+String.format(Locale.GERMAN, "%,.2f", reporte_gan)+
                        "&reporte_esp="+String.format(Locale.GERMAN, "%,.2f", reporte_esp)+
                        "&reporte_suss="+String.format(Locale.GERMAN, "%,.2f", reporte_suss)+
-                       "&reporte_observacion="+URLEncoder.encode(reporte_observacion)+
+                       "&reporte_observacion="+URLEncoder.encode(reporte_observacion, StandardCharsets.UTF_8)+
                        "&comision_pago_facil="+String.format(Locale.GERMAN, "%,.2f", comision_pago_facil)+
                        "&reporte_higiene="+String.format(Locale.GERMAN, "%,.2f", reporte_higiene)+
                        "&periodo="+periodo+"'><img src='/ameca/imgs/create_pdf.png' style='width:48px;height:48px;'></a>";
@@ -769,23 +759,21 @@ private String getReporte (String id_establecimiento, String periodo)
 
 
 
-    // Recibe  el periodo y crea un archivo excel en /usr/share/tomcat8-ameca/ameca/Reportes/2019/liqui_iibb_201901.xls. 
+    // Recibe  el periodo y crea un archivo excel en /var/lib/tomcat9/webapps/ameca/Reportes/2019/liqui_iibb_201901.xls. 
 private String doExcel_iibb (String periodo) 
     {
         Connection con = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
-        String resul="inicio excel", row_span, query="", nom_zona, cuit, direccion, nombre, condicion_iibb;
-        Float cmrc_bi=0.0f, cmrc_alic=0.0f, cmrc_debito=0.0f, cmrc_percepcion=0.0f, cmrc_saldo=0.0f,  
-                sum_bi=0.0f, sum_debito=0f, sum_percepcion=0f, sum_saldo=0f;
-        int i=-1, id_zona=0, rows=0, count=0, cm=0;
-        int id_comercio=0, kcmrc=1;
-        Float bi=0f,  debit=0f, percep=0f, saldo=0f;
+        String resul="inicio excel", query="", nom_zona, cuit, direccion, nombre, condicion_iibb;
+        float cmrc_bi, cmrc_alic, cmrc_debito, cmrc_percepcion, cmrc_saldo;
+        int count, cm, kcmrc=1;
+        float bi=0f,  debit=0f, percep=0f, saldo=0f;
         
-        String  FILE_NAME = "/usr/share/tomcat8-ameca/ameca/Reportes/"+htm.getPeriodo_year()+"/liqui_iibb_"+periodo+".xls";
+        String  FILE_NAME = HTML.folder+"/Reportes/"+htm.getPeriodo_year()+"/liqui_iibb_"+periodo+".xls";
 
         int rowNum = 0;
-        Boolean sucursales=true;  // crea la segunda sheet solo la primera vez que se encuentra un count >1
+        boolean sucursales=true;  // crea la segunda sheet solo la primera vez que se encuentra un count >1
         try 
             {
             HSSFWorkbook workbook = new HSSFWorkbook();
@@ -839,7 +827,7 @@ private String doExcel_iibb (String periodo)
                 if (count>1 && sucursales)   // acumular en vector subtotales del mismo id_comercio y agregar row del total al cambiar id_comercio.
                    {
                    sucursales=false;
-                   id_comercio=rs.getInt(6);
+                   //id_comercio=rs.getInt(6);
                    rowNum=0;
                    sheet = workbook.createSheet("SUCURSALES"); 
                    row = sheet.createRow(rowNum++);
@@ -1006,22 +994,21 @@ private String doExcel_iibb (String periodo)
     
 
 
-    // Recibe  el periodo y crea un archivo excel en /usr/share/tomcat8-ameca/ameca/Reportes/2019/liqui_iva_201901.xls. 
+    // Recibe  el periodo y crea un archivo excel en /var/lib/tomcat9/webapps/ameca/Reportes/2019/liqui_iva_201901.xls. 
 private String doExcel_iva (String periodo) 
     {
         Connection con = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
-        String resul="inicio excel", row_span, query="", nom_zona, cuit, direccion, nombre, condicion_iva;
-        Float cmrc_bi=0f, cmrc_alic=0f, cmrc_debito=0f, cmrc_percepcion=0f, cmrc_saldo=0f, cmrc_compra=0f, cmrc_credito=0f, cmrc_compra_t=0f, 
+        String resul="inicio excel", query="", nom_zona, cuit, direccion, nombre, condicion_iva;
+        float cmrc_bi, cmrc_alic, cmrc_debito, cmrc_percepcion, cmrc_saldo, cmrc_compra, cmrc_credito, cmrc_compra_t,
                 sum_bi=0.0f, sum_debito=0f, sum_percepcion=0f, sum_saldo=0f, sum_compra=0f, sum_credito=0f, sum_compra_t=0f;
-        int i=-1, id_zona=0, rows=0, count=0, cm=0 ;
-        int id_comercio=0, kcmrc=1;
+        int count, cm , kcmrc=1;
         
-        String  FILE_NAME = "/usr/share/tomcat8-ameca/ameca/Reportes/"+htm.getPeriodo_year()+"/liqui_iva_"+periodo+".xls";
+        String  FILE_NAME = HTML.folder+"/Reportes/"+htm.getPeriodo_year()+"/liqui_iva_"+periodo+".xls";
 
         int rowNum = 0;
-        Boolean sucursales=true;  // crea la segunda sheet solo la primera vez que se encuentra un count >1
+        boolean sucursales=true;  // crea la segunda sheet solo la primera vez que se encuentra un count >1
         try 
             {
             HSSFWorkbook workbook = new HSSFWorkbook();
@@ -1086,7 +1073,7 @@ private String doExcel_iva (String periodo)
                 if (count>1 && sucursales)   // acumular en vector subtotales del mismo id_comercio y agregar row del total al cambiar id_comercio.
                    {
                    sucursales=false;
-                   id_comercio=rs.getInt(6);
+                   //id_comercio=rs.getInt(6);
                    rowNum=0;
                    sheet = workbook.createSheet("SUCURSALES"); 
                    row = sheet.createRow(rowNum++);
@@ -1375,14 +1362,17 @@ return resul;
 //        preface.add(new Paragraph( "CAUTE:  This document is a preliminary version).",   redFont));
 
 //        document.add(preface);
-       bfComic = BaseFont.createFont("/usr/share/tomcat8-ameca/ameca/Styles/ARIALUNI.TTF", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-       chino_tit = new Font(bfComic, 16, Font.BOLD);
-       chino = new Font(bfComic, 14, Font.NORMAL);
-       chino_b = new Font(bfComic, 14, Font.BOLD);
-       chino_s = new Font(bfComic, 12, Font.NORMAL);
-       chino_ss = new Font(bfComic, 10, Font.NORMAL);
+        BaseFont bfComic = BaseFont.createFont(HTML.folder+"/Styles/ARIALUNI.TTF", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        BaseFont sp = BaseFont.createFont(HTML.folder+"/Styles/roman.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        Font chino_tit = new Font(bfComic, 16, Font.BOLD);
+        Font chino = new Font(bfComic, 14, Font.NORMAL);
+        Font chino_b = new Font(bfComic, 14, Font.BOLD);
+        Font chino_s = new Font(bfComic, 12, Font.NORMAL); //12
+        Font chino_ss = new Font(bfComic, 10, Font.NORMAL); //10
+        Font sp_s = new Font(sp, 12, Font.NORMAL);
+        Font sp_ss = new Font(sp, 10, Font.NORMAL);
        Chunk line_thick = new Chunk(separator);
-       document.add(new Paragraph("Reporte Impuestos - 税金报告表                      Periodo: "+htm.getPeriodo_prn_long (periodo), chino_tit));
+       document.add(new Paragraph("Reporte Impuestos - 税金报告表                   Periodo: "+htm.getPeriodo_prn_long (periodo), chino_tit));
        document.add(line_thick);
   //     document.add(new Phrase("\nTABLE"));
         float [] cols = {230F,350F, 50F, 350F}; 
@@ -1460,8 +1450,8 @@ return resul;
        document.add(new Phrase("\n"));
        //document.add(new Phrase("\n"));
        
-        document.add( new Paragraph( "Opción 1: VEP. Los impuestos ya están declarados en la AFIP / ARBA / AGIP. Use su cuenta bancaria para abonar.", chino_s ) );
-        document.add( new Paragraph( "选项 1: 税款在AfIP/Arba/AGIP系统中申報了，請使用银行账户支付", chino_s  ) );
+        document.add( new Paragraph( "Opción 1: VEP. Los impuestos ya están declarados en la AFIP / ARBA / AGIP. Use su cuenta bancaria para abonar.", sp_s) );
+        document.add( new Paragraph( "选项 1: 税款在AfIP/Arba/AGIP系统中申報了，請使用银行账户支付", chino_s) );
 //        document.add(new Phrase("\n"));
 //        document.add(linebreak2);
         document.add(new Phrase("\n"));
@@ -1544,7 +1534,7 @@ return resul;
                 document.add(new Phrase("Monotributo (单一税): $ "+monotributo, chino_s));
         document.add(new Phrase("\n", chino_s));
         if (autonomo.length()>1)
-                document.add(new Phrase("Autónomo (老板养老金): $ "+autonomo, chino_s));
+                document.add(new Phrase("Autonomo (老板养老金): $ "+autonomo, chino_s));
         document.add(new Phrase("\n", chino_s));
         document.add(new Phrase("Seguridad e Higiene (卫生安全税): $ "+reporte_higiene, chino_s));
         document.add(new Phrase("\n"));
@@ -1557,7 +1547,7 @@ return resul;
         table = new PdfPTable(cols2);
         table.setWidthPercentage(100);
         
-        c1 = new PdfPCell(new Phrase ( "Opción 2: Pago utilizando la plataforma Pago Fácil (sin usar cuenta bancaria propia)." , chino_s ) );
+        c1 = new PdfPCell(new Phrase ( "Opción 2: Pago utilizando la plataforma Pago Fácil (sin usar cuenta bancaria propia)." , sp_s) );
         c1.setBorder(PdfPCell.NO_BORDER);
   
         //document.add( new Paragraph( "Opción 2: Pago utilizando la plataforma Pago Fácil (sin usar cuenta bancaria propia)." , chino_s ) );
@@ -1585,7 +1575,7 @@ return resul;
         table.addCell(c1);
         
 
-        c1 = new PdfPCell(new Phrase( "选项 2: 使用pagofacil平台进行纳税支付，无需使用自己的银行账户." , chino_s ) );
+        c1 = new PdfPCell(new Phrase( "选项 2: 使用pagofacil平台进行纳税支付，无需使用自己的银行账户." , chino_s) );
         c1.setBorder(PdfPCell.NO_BORDER);
   
         //document.add( new Paragraph( "Opción 2: Pago utilizando la plataforma Pago Fácil (sin usar cuenta bancaria propia)." , chino_s ) );
@@ -1676,7 +1666,7 @@ return resul;
                }
         
 
-        c1 = new PdfPCell(new Phrase("Com. Pago Fácil", chino_s));
+        c1 = new PdfPCell(new Phrase("Com. Pago Facil", chino_s));
         c1.setHorizontalAlignment(Element.ALIGN_CENTER);
         c1.disableBorderSide(Rectangle.TOP);
         table.addCell(c1);
@@ -1770,7 +1760,7 @@ return resul;
 
         document.add(new Phrase("\n"));
         document.add(new Phrase("\n"));
-        document.add(new Paragraph ("Le informamos que en caso de notar diferencia en el monto  entre este reporte y el volante de Pagopyme-PagoFacil, eso se debe al interés de ingresos brutos que ya está incluido en su volante de pagopyme.", chino_ss));
+        document.add(new Paragraph ("Le informamos que en caso de notar diferencia en el monto  entre este reporte y el volante de Pagopyme-PagoFacil, eso se debe al interés de ingresos brutos que ya está incluido en su volante de pagopyme.", sp_ss));
         //document.add(new Phrase("\n"));
         document.add(new Phrase("尊敬的顾客们，特别通知如果您发现我们做出来的pagopyme 的缴费单中的金额与原来的金额有所不同，那是因为其中包含着每月20号后交的营业税的利息.", chino_ss));
 
@@ -1802,11 +1792,11 @@ private String doExcel_establecimientos ()
         Connection con = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
-        String resul="inicio excel", row_span, query="", nom_zona, cuit, direccion, nombre, condicion_iibb, condicion_iva, direccion_establecimiento, 
+        String resul="inicio excel", query="", nom_zona, cuit, direccion, nombre, condicion_iibb, condicion_iva, direccion_establecimiento,
                                 periodo_alta, periodo_baja;
-        int i=-1, id_zona=0, rows=0, count=0, casa_matriz, id_comercio=0, id_anterior=0, cond_iva=0, id_categ_auton, id_categ_monot;
+        int casa_matriz, id_comercio, id_anterior=0, cond_iva, id_categ_auton, id_categ_monot;
         
-        String  FILE_NAME = "/usr/share/tomcat8-ameca/ameca/Reportes/"+htm.getPeriodo_year()+"/clientes_"+htm.getPeriodo_nostatic()+".xls";
+        String  FILE_NAME = HTML.folder+"/Reportes/"+htm.getPeriodo_year()+"/clientes_"+htm.getPeriodo_nostatic()+".xls";
 
         int rowNum = 0;
         try 
@@ -1976,14 +1966,14 @@ private String doExcel_establecimientos ()
         }
 
 
-    // Recibe  el periodo y crea un archivo excel en /usr/share/tomcat8-ameca/ameca/Reportes/2019/liqui_iibb_201901.xls. 
+    // Recibe  el periodo y crea un archivo excel en /var/lib/tomcat9/webapps/ameca/Reportes/2019/liqui_iibb_201901.xls. 
 //             doExcel_reporte (id_establecimiento, periodo, base_imponible, saldo_iva, saldo_iva_reporte, saldo_iibb, saldo_iibb_reporte, reporte_suss, reporte_higiene, nombre_responsable, direccion_establecimiento, nro_cuit)
 
 private String doExcel_reporte (String id_establecimiento, String periodo, String autonomo, String saldo_iva, String saldo_iva_reporte, 
                                                     String saldo_iibb, String saldo_iibb_reporte, String reporte_suss, String reporte_higiene, String nombre_responsable, String direccion_establecimiento, String nro_cuit) 
     {
         int rowNum=0;
-        String resul="",  FILE_NAME = "/usr/share/tomcat8-ameca/ameca/Reportes/"+periodo.substring(0,4)+"/"+periodo.substring(4,6)+"/reporte_historico_"+id_establecimiento+"_"+periodo+".xls";
+        String resul,  FILE_NAME = HTML.folder+"/Reportes/"+periodo.substring(0,4)+"/"+periodo.substring(4,6)+"/reporte_historico_"+id_establecimiento+"_"+periodo+".xls";
 
         try 
             {
@@ -2063,7 +2053,7 @@ private String doExcel_reporte (String id_establecimiento, String periodo, Strin
             celda = row.createCell(1);
             celda.setCellValue(reporte_suss);
 
-                   row = sheet.createRow(rowNum++);
+                   row = sheet.createRow(rowNum);
 
             celda = row.createCell(0);
             celda.setCellValue("SEGURIDAD E HIGIENE (卫生安全税)");
@@ -2085,8 +2075,6 @@ private String doExcel_reporte (String id_establecimiento, String periodo, Strin
 
         catch (Exception ex) {
                resul= "<br><br>ERROR GRAL: "+ex.getMessage()+"<br><br>";
-            //Logger lgr = Logger.getLogger(HikariCPEx.class.getName());
-            //lgr.log(Level.SEVERE, ex.getMessage(), ex);
             }
         
         
